@@ -1,12 +1,13 @@
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import Loader from "@/components/loader";
 import clsx from "clsx"
-import ProductCard from "@/components/promptPage/Product-card"
-import { use } from "framer-motion/client";
+import ProductCard from "@/components/landingPage/Product-card"
+import { pre, use } from "framer-motion/client";
+import { GitCompareArrows } from "lucide-react";
 
 export default function Home() {
 
@@ -64,7 +65,10 @@ export default function Home() {
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(false)
 
+  const [isCompareMode, setCompareMode] = useState(false)
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([])
 
+  const productsRef = useRef<HTMLDivElement | null>(null)
 
   const flexOrGrid = clsx({
 
@@ -99,8 +103,8 @@ export default function Home() {
         }
   
         if(data){
-          console.log("The data in res: ", data)
-          setProducts(data)
+          console.log("The data in res: ", data.allProducts)
+          setProducts(data.allProducts) 
           setLoading(false)
         }else{
           console.log("No data received")
@@ -113,6 +117,29 @@ export default function Home() {
       }
       
     }
+
+
+    const toggleCompareMode = () => {
+      setCompareMode((prevValue) => !prevValue)
+    }
+
+    const handleSelectedProducts = (id: string) => {
+
+      setSelectedProducts((prevProducts) => {
+        if(prevProducts.length >= 2){
+          return prevProducts.filter(p_id => p_id !== id) 
+        }else{
+          return [...prevProducts, id]
+        }
+      })
+
+    }
+
+    useEffect(() => {
+          if (productsRef.current) {
+            productsRef.current.scrollIntoView({ behavior: "smooth" });
+          }
+    }, [products]);
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">
@@ -170,15 +197,34 @@ export default function Home() {
       {/* Featured Products */}
       <section className="px-4 pb-20">
         <div className="container mx-auto max-w-6xl">
-          <h2 className="text-2xl md:text-3xl font-bold text-center mb-12 text-gray-100">Featured Products</h2>
-          <div className={flexOrGrid}>
+          <div className="flex justify-between px-16">
+            
+            <h2 className="text-2xl md:text-3xl font-bold text-center mb-12 text-gray-100">Featured Products</h2>
+            
+            <Button
+              onClick={toggleCompareMode}
+              className={`${
+                isCompareMode
+                  ? "bg-red-500/30 hover:bg-red-600/30"
+                  : "bg-gradient-to-r from-green-500/30 to-blue-500/30 hover:from-green-600/30 hover:to-blue-600/30"
+              } text-white border border-white/30 sticky`}
+            >
+              {isCompareMode ? "Cancel Compare" : `Compare`} <GitCompareArrows />
+            </Button>
+
+          </div>
+          <div className={flexOrGrid} ref={productsRef} >
             {
             loading ? 
 
               <Loader /> :
 
               (products.map((product, index) => (
-                <ProductCard key={index} product = {product} index = {index} />)))
+                <ProductCard key={index} product = {product} index = {index} 
+                isSelected = {selectedProducts.includes(product.id)}
+                isCompareMode = {isCompareMode}
+                setSelectedProducts = {handleSelectedProducts}
+                />)))
 
             }
           </div>

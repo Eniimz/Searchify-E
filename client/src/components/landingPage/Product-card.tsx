@@ -1,38 +1,83 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { motion } from "framer-motion"
 import { Button } from '../ui/button'
 import { Card } from "@/components/ui/card"
+import { Checkbox } from '../ui/checkbox'
+
+
+type Product = {
+  id: string,  
+  title: string, 
+  description: string,  
+  price: number,  
+  rating: number,   
+  imageUrl: string, 
+  url: string
+  }
 
 type productCardProps = {
-    product: {
-    id: string,  
-    title: string, 
-    description: string,  
-    price: number,  
-    rating: number,   
-    imageUrl: string, 
-    url: string
-    },
-    index: number
+
+    product: Product,
+    index: number,
+    isCompareMode: boolean,
+    isSelected: boolean,
+    setSelectedProducts: (id: string) => void
+
     
 }
 
-const buttonClick = (url: string) => {
 
-    console.log("CLICKCKEDDE")
-    window.open(url, '_blank') 
-}
-
-const ProductCard: React.FC<productCardProps> = ({ product, index }) => {
+const ProductCard: React.FC<productCardProps> = ({ product, index, isCompareMode, isSelected, setSelectedProducts }) => {
+  
+  
+  const buttonClick = (url: string) => {
+  
+      console.log("CLICKCKEDDE")
+      window.open(url, '_blank') 
+  }
+  
+  const onSelectForCompare = (id: string) => {
+    
+    setSelectedProducts(id)
+    
+  }
   return (
     <div>
       <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-              >
-                <Card className="group relative overflow-hidden bg-gray-800/50 border-gray-700 hover:border-gray-600 
-                transition-all duration-300 h-full">
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: index * 0.1 }}
+        >
+        <Card className="group relative overflow-hidden bg-gray-800/50 border-gray-700 hover:border-gray-600 
+        transition-all duration-300 h-full">
+        {isCompareMode && (
+          <div className="absolute top-2 left-2 z-10">
+          <div className="relative">
+            <Checkbox
+              checked={isSelected}
+              onCheckedChange={() => onSelectForCompare(product.id)}
+              id={`compare-${product.id}`}
+              className="peer border-2 border-white/30 bg-transparent rounded-md w-6 h-6 transition-all duration-200 data-[state=checked]:bg-transparent data-[state=checked]:border-blue-500/70"
+            />
+              {isSelected && (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 text-blue-500/70 pointer-events-none"
+                >
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              )}
+              <label htmlFor={`compare-${product.id}`} className="absolute inset-0 cursor-pointer" />
+            </div>
+            <div className="sr-only">Select for comparison</div>
+          </div>
+        )}
                   <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <div className="p-4 flex flex-col h-full">
                     <div className="aspect-square relative rounded-lg overflow-hidden mb-4 flex justify-center">
@@ -58,7 +103,7 @@ const ProductCard: React.FC<productCardProps> = ({ product, index }) => {
                         <Button 
                         onClick={() => buttonClick(product.url)}
                         className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 
-                        text-white z-101">
+                        text-white z-10">
                           Buy Now
                         </Button>
 

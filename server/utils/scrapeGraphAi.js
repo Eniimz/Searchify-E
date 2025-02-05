@@ -1,7 +1,7 @@
 import { smartScraper } from 'scrapegraph-js';
 import { z } from "zod"
  
-const apiKey = "sgai-58e2dd51-1408-49a9-851a-50cde2837cdf";
+const apiKey = "sgai-1d240350-1227-44b2-8acf-e48834dd3702";
 
 export const schema = z.object({
   title: z.string().describe('The title of the product'),
@@ -12,9 +12,9 @@ export const schema = z.object({
 
 })
 
-const prompt = `Extract top 2 products data and return the result in json format with fields
-title, price,rating,description imageUrl, link. If any data is not found, just write "N/A" for that
-field
+const prompt = `Extract top 4 products data and return the result in json format with fields
+title, price,rating, description imageUrl, link. If any data is not found, just write "N/A" for that
+field.
 
 `
 
@@ -29,6 +29,10 @@ export const scrapeAmazon = async (queryParams) => {
     console.log("----- amazon products----")
     console.log(response.result.products)
     console.log("scrapped amazon succesfully");
+
+    if(response === undefined ||response ===  null){
+      return [ ]
+    }
 
     return response.result.products ? response.result.products :  [response.result]
   } catch (error) {
@@ -48,6 +52,10 @@ export const scrapeEbay = async (queryParams) => {
     console.log("----- Ebay products----")
     console.log(response.result.products)
     console.log("scraped ebay successfully");
+
+    if(response === undefined ||response === null){
+      return [ ]
+    }
 
     return response.result.products ? response.result.products :  [response.result] // if more than one product, if not...return array
 
