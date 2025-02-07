@@ -1,5 +1,5 @@
 // import Image from "next/image"
-import { Star, Truck } from "lucide-react"
+import { ArrowBigLeftDash, ArrowBigLeftIcon, ArrowLeft, ArrowLeftIcon, ArrowLeftToLine, ArrowUpRightFromSquareIcon, LucideArrowBigLeft, LucideArrowLeft, Star, Truck } from "lucide-react"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -10,7 +10,7 @@ interface ProductFeature {
 }
 
 interface Product {
-  ProductTitle: string
+  ProductTitle: string,
   price: {
     listPrice: string
     currentPrice: string
@@ -31,13 +31,26 @@ interface Product {
 }
 
 export function DetailCard({ product }: { product: Product }) {
+
+  const handleBack = () => {
+
+  }
+
   return (
-    <Card className="w-full max-w-md mx-auto overflow-hidden bg-gray-800/50 border-gray-700 hover:border-gray-600 transition-all duration-300">
-      <div className="relative aspect-square">
-        <img src={product.imageUrl || "/placeholder.svg"} alt={product.ProductTitle} className="object-cover" />
+    <div className="flex flex-col w-full overflow-hidden transition-all duration-300">
+
+      <div className="px-6 pt-6">
+        <Button variant="ghost" className="mb-4 text-white font-bold text-lg hover:bg-gray-800/80" onClick={handleBack}>
+            <LucideArrowLeft className="mr-2 h-4 w-4 text-white text-lg font-bold" size={20} />
+            Product Overview
+        </Button>
       </div>
-      <CardContent className="p-6">
-        <h2 className="text-2xl font-bold mb-2 text-gray-100">{product.ProductTitle}</h2>
+
+      <div className="flex justify-left rounded-md p-6">
+        <img src={product.imageUrl || "/placeholder.svg"} alt={product.ProductTitle} className="object-cover rounded-md" />
+      </div>
+      <div className="p-6">
+        <h2 className="text-2xl font-bold mb-2 text-gray-100 flex items-center gap-2"><ArrowUpRightFromSquareIcon /> <span>{product.ProductTitle}</span></h2>
         <div className="flex items-center mb-4">
           <div className="flex items-center mr-4">
             <Star className="w-5 h-5 text-yellow-400 mr-1" />
@@ -74,13 +87,13 @@ export function DetailCard({ product }: { product: Product }) {
             <span className="ml-1">({product.sellerInfo.numReviews} reviews)</span>
           </div>
         </div>
-      </CardContent>
-      <CardFooter className="bg-gray-800/80 p-6">
+      </div>
+      <div className="bg-gray-800/80 p-6">
         <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white">
           Add to Cart
         </Button>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   )
 }
 

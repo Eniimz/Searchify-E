@@ -88,14 +88,14 @@ export const getScrapeResults = async (productQuery) => {
 
 // console.log("Gettting the requested product from user query...")
 
-// const returnedResult = await getUserProductPrompt("I want to design my room")
-// const { product } = returnedResult
+// const returnedResult = await getUserProductPrompt("show me rgb led lights")
+
 // console.log("The destructured product: ", product)
 // console.log("Now scraping..... ")
 
 // getScrapeResults("Gaming Laptops")
 
-// await scrapeAmazon("mac Laptops")
+// await scrapeAmazon("gaming laptops")
 
 
 

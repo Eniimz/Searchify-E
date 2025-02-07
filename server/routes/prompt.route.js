@@ -1,12 +1,12 @@
 
 import express from 'express'
-import { getPrompt } from '../controllers/prompt.controller.js'
+import { getPromptAndFetch } from '../controllers/prompt.controller.js'
 
 const router = express.Router()
 
 
 
-router.post("/prompt", getPrompt)
+router.post("/prompt", getPromptAndFetch)
 
 
 export default router;

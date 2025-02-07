@@ -5,9 +5,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import Loader from "@/components/loader";
 import clsx from "clsx"
-import ProductCard from "@/components/landingPage/Product-card"
-import { pre, use } from "framer-motion/client";
+import ProductCard from "@/components/global/Product-card"
 import { GitCompareArrows } from "lucide-react";
+import {Product} from "../lib/types"
+import PaginationControls from "@/components/global/Pagination-controls";
+import { useNavigate, useSearchParams } from 'react-router-dom'
+
+
 
 export default function Home() {
 
@@ -15,16 +19,7 @@ export default function Home() {
     prompt: string
   }
 
-  type productType = {
 
-    id: string,
-    title: string,
-    description: string, 
-    price: number, 
-    rating: number, 
-    imageUrl: string,
-    url: string
-    }
 
     // const products = [
     //   {
@@ -61,8 +56,12 @@ export default function Home() {
     //   }
     // ]
 
-  const [products, setProducts] = useState<productType[] | []>([])
+  const [ searchParams ] = useSearchParams()
+  const page = Number(searchParams.get('page')) || 1
+
+  const [products, setProducts] = useState<Product[] | []>([])
   const [input, setInput] = useState("")
+  const [searchQuery, setSearchQuery] = useState("")
   const [loading, setLoading] = useState(false)
 
   const [isCompareMode, setCompareMode] = useState(false)
@@ -78,17 +77,20 @@ export default function Home() {
     
     })
 
-    const handlePrompt = async () => {
+    const handlePromptAndFetch = async (inputQuery: string) => {
 
+      if(!inputQuery || inputQuery === '') return
+
+      setSearchQuery(inputQuery)
       const prompt: prompt = {
-        prompt: input
+        prompt: inputQuery
       }
   
       setLoading(true)
 
       try{
   
-        const res = await fetch('http://localhost:3000/api/prompt', {
+        const res = await fetch(`http://localhost:3000/api/prompt/?page=${page}`, {
           method: 'POST',
           headers: {'Content-Type' : 'application/json'},
           body: JSON.stringify(prompt)
@@ -141,6 +143,20 @@ export default function Home() {
           }
     }, [products]);
 
+
+    useEffect(() => {
+
+      if(!searchQuery) return
+
+      const fetchProducts = async () => {
+        await handlePromptAndFetch(searchQuery)
+      }
+      
+      fetchProducts()
+
+    }, [page])
+
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">
       {/* Hero Section */}
@@ -185,7 +201,7 @@ export default function Home() {
                 />
               </div>
               <Button 
-              onClick={handlePrompt}
+              onClick={() => handlePromptAndFetch(input)}
               className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white">
                 Generate
               </Button>
@@ -196,7 +212,7 @@ export default function Home() {
 
       {/* Featured Products */}
       <section className="px-4 pb-20">
-        <div className="container mx-auto max-w-6xl">
+        <div className="container mx-auto max-w-6xl flex flex-col justify-center">
           <div className="flex justify-between px-16">
             
             <h2 className="text-2xl md:text-3xl font-bold text-center mb-12 text-gray-100">Featured Products</h2>
@@ -228,6 +244,11 @@ export default function Home() {
 
             }
           </div>
+
+            <div className="flex justify-center">
+              <PaginationControls />
+            </div>
+
         </div>
       </section>
     </main>

@@ -1,22 +1,20 @@
 import { smartScraper } from 'scrapegraph-js';
 import { z } from "zod"
  
-const apiKey = "sgai-1d240350-1227-44b2-8acf-e48834dd3702";
+const apiKey = "sgai-97735aa1-9971-46ec-8de0-455d1b8a9ab3";
 
 export const schema = z.object({
   title: z.string().describe('The title of the product'),
   price: z.number().describe("the price of the product"),
-  rating: z.number().describe("The review rating of the product"),
+  rating: z.number().describe("it should be like this for exmaple: 4.5"),
+  description: z.string(),
   imageUrl: z.string().url(),
   link: z.string().url()
 
 })
 
-const prompt = `Extract top 4 products data and return the result in json format with fields
-title, price,rating, description imageUrl, link. If any data is not found, just write "N/A" for that
-field.
-
-`
+const prompt = `Only Extract 10 products data and return the result in json format with fields, 
+title, price, rating, description, imageUrl, link.If any data is not found, just write "N/A" for that field.`
 
 
 export const scrapeAmazon = async (queryParams) => {
@@ -50,7 +48,7 @@ export const scrapeEbay = async (queryParams) => {
     const response = await smartScraper(apiKey, url, prompt, schema);
 
     console.log("----- Ebay products----")
-    console.log(response.result.products)
+    console.log(response)
     console.log("scraped ebay successfully");
 
     if(response === undefined ||response === null){

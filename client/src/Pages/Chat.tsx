@@ -1,7 +1,7 @@
 
-import { ChatInput } from "@/components/chatPage/Chat-input"
-import Message from "@/components/chatPage/Message"
-import { Sidebar } from "@/components/chatPage/Sidebar"
+import { ChatInput } from "@/components/chat -page/Chat-input"
+import Message from "@/components/chat -page/Message"
+import { Sidebar } from "@/components/chat -page/Sidebar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { pre, tr } from "framer-motion/client"
 import React, { useEffect, useRef, useState } from "react"
