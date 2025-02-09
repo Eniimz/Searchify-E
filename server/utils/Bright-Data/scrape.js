@@ -1,63 +1,33 @@
 import puppeteer from 'puppeteer-core';
 
-  
-  
-
 export const scrapeAmazonBright = async (query, startIndex, endIndex) => {
 
-// Launch Puppeteer
+  const browser = await puppeteer.connect({
 
-// const browser = await puppeteer.launch({ headless: true });
+  browserWSEndpoint: 'wss://brd-customer-hl_dcc91e8a-zone-scraping_browser1:vh5pk5gtoli0@brd.superproxy.io:9222'
 
-  
+  })
 
-const browser = await puppeteer.connect({
+  const page = await browser.newPage();
 
-browserWSEndpoint: 'wss://brd-customer-hl_dcc91e8a-zone-scraping_browser1:vh5pk5gtoli0@brd.superproxy.io:9222'
 
-})
+  await page.setViewport({
 
-  
+  width: 1080,
 
-const page = await browser.newPage();
+  height: 768
 
-  
+  })
 
-await page.setViewport({
 
-width: 1080,
+  page.setDefaultNavigationTimeout(60 * 1000)
 
-height: 768
+  page.setDefaultNavigationTimeout(2 *60 * 1000); // 60 seconds  1
 
-})
+  await page.goto(`https://www.amazon.com/s?k=${query}`, { waitUntil: 'networkidle2' });
 
-  
-
-// page.setDefaultNavigationTimeout(2 * 60 * 1000)
-
-  
-
-// await page.setRequestInterception(true);
-
-// page.on('request', (request) => {
-
-// if (['stylesheet', 'font'].includes(request.resourceType())) {
-
-// request.abort(); // Block stylesheets and fonts
-
-// } else {
-
-// request.continue(); // Allow images and other resources
-
-// }
-
-// });
-
-page.setDefaultNavigationTimeout(2 *60 * 1000); // 60 seconds  1
-
-await page.goto(`https://www.amazon.com/s?k=${query}&page=1`, { waitUntil: 'networkidle2' });
-
-  
+  await page.screenshot("bot.png")
+    
 
 // await page.waitForSelector('div.s-result-item div.a-section div.s-title-instructions-style a')
 
@@ -66,45 +36,49 @@ await page.waitForSelector('div.s-result-item');
 
 // Extract product listings
 
-const products = await page.evaluate(({ startIndex, endIndex }) => {
+  const products = await page.evaluate(({ startIndex, endIndex }) => {
 
-const items = [];
+    const items = [];
 
-const nodeList = document.querySelectorAll('div.s-result-item')
+    const nodeList = document.querySelectorAll('div.s-result-item')
 
-const productsArray = Array.from(nodeList)
+    console.log("---------NodelIst------")
 
-productsArray.slice(startIndex, endIndex).forEach((product) => {
+    console.log(nodeList)
 
-const title = product.querySelector('a h2 span')?.innerText;
+    const productsArray = Array.from(nodeList)
 
-const price = product.querySelector('.a-price span')?.innerText;
+    productsArray.slice(startIndex, endIndex).forEach((product) => {
 
-  
+    const title = product.querySelector('a h2 span')?.innerText;
 
-let rating = product.querySelector('div.s-card-container div.a-size-small span.a-declarative a')?.getAttribute('aria-label');
+    const price = product.querySelector('.a-price span')?.innerText;
 
-rating = rating ? rating : null
+      
 
-let description =product.querySelector('[data-cy="delivery-recipe"]')
+    let rating = product.querySelector('div.s-card-container div.a-size-small span.a-declarative a')?.getAttribute('aria-label');
 
-description = description ? description.textContent : null;
+    rating = rating ? rating : null
 
-  
+    let description =product.querySelector('[data-cy="delivery-recipe"]')
 
-const link = product.querySelector('div.a-section div.s-title-instructions-style a')?.href;
+    description = description ? description.textContent : null;
 
-const imageUrl = product.querySelector('div.s-product-image-container img')?.src
+      
 
-if (link?.startsWith('https://') && Object.keys({ title, price, link, imageUrl }).length > 2) {
-    items.push({ title, price, rating, link, description, imageUrl });
-  }
+    const link = product.querySelector('div.a-section div.s-title-instructions-style a')?.href;
 
-});
+    const imageUrl = product.querySelector('div.s-product-image-container img')?.src
 
-return items;
+    if (link?.startsWith('https://') && Object.keys({ title, price, link, imageUrl }).length > 2) {
+        items.push({ title, price, rating, link, description, imageUrl });
+      }
 
-}, { startIndex, endIndex });
+    });
+
+    return items;
+
+  }, { startIndex, endIndex });
 
   
   

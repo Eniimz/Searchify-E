@@ -1,7 +1,7 @@
 import { smartScraper } from 'scrapegraph-js';
 import { z } from "zod"
  
-const apiKey = "sgai-97735aa1-9971-46ec-8de0-455d1b8a9ab3";
+const apiKey = "sgai-082a3673-88b5-45f8-aee4-f08e14522070";
 
 export const schema = z.object({
   title: z.string().describe('The title of the product'),
@@ -13,19 +13,19 @@ export const schema = z.object({
 
 })
 
-const prompt = `Only Extract 10 products data and return the result in json format with fields, 
+const prompt = `Only Extract 8 products data and return the result in json format with fields, 
 title, price, rating, description, imageUrl, link.If any data is not found, just write "N/A" for that field.`
 
 
-export const scrapeAmazon = async (queryParams) => {
+export const scrapeAmazon = async (queryParams, page) => {
 
-  const url = `https://amazon.com/s?k=${queryParams}`;
+  const url = `https://amazon.com/s?k=${queryParams}&page=${page}`;
   
 
   try {
     const response = await smartScraper(apiKey, url, prompt, schema);
     console.log("----- amazon products----")
-    console.log(response.result.products)
+    // console.log(response.result.products)
     console.log("scrapped amazon succesfully");
 
     if(response === undefined ||response ===  null){
@@ -38,17 +38,17 @@ export const scrapeAmazon = async (queryParams) => {
   }
 };
 
-export const scrapeEbay = async (queryParams) => {
+export const scrapeEbay = async (queryParams, page) => {
 
   console.log("The passed params: ", queryParams)
 
-  const url = `https://www.ebay.com/sch/i.html?_nkw=${queryParams}`
+  const url = `https://www.ebay.com/sch/i.html?_nkw=${queryParams}&_pgn=${page}`
 
   try {
     const response = await smartScraper(apiKey, url, prompt, schema);
 
     console.log("----- Ebay products----")
-    console.log(response)
+    // console.log(response.result.products)
     console.log("scraped ebay successfully");
 
     if(response === undefined ||response === null){

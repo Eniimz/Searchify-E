@@ -9,14 +9,15 @@ import ProductCard from "@/components/global/Product-card"
 import { GitCompareArrows } from "lucide-react";
 import {Product} from "../lib/types"
 import PaginationControls from "@/components/global/Pagination-controls";
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
 
 
 export default function Home() {
 
   type prompt = {
-    prompt: string
+    prompt: string,
+    previousStore ?: 4 
   }
 
 

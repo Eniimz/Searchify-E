@@ -57,8 +57,9 @@ export const scrapeDetails = async (url) => {
   }
   
   console.log("logging....")
-  console.log(scrapeResult.data);
+  // console.log(scrapeResult.data);
 
+  return scrapeResult.data
 }
 
 // const url = "https://www.amazon.com/iBUYPOWER-Computer-Desktop-Y60BA9N47TS03-GeForce/dp/B0DDZ92PD5/ref=sr_1_3?dib=eyJ2IjoiMSJ9.e0abnAo7g_f1OO7uMwwbrWk-owPIVi2IAYbunLmf71y9YwZ_8V9S2UViIUW41RdHn1hCQJgJRifTj-0SS05F1TznyTiC-ryY5jBvhU2fKdXQeeVc7fBbfH0JqkXWEezbYB8DX40P33B3MY_UKTWalNVzQAyWDpVL6KHwWFO62famIEN2udGiRS_OC7KGWI6inFjx9bK0XlhmL8YvKTCiq_7DSipuvCOdXaCjayBNsIs.NyFnuFG5Jhk__uY12TzQZRV2hKxZAP-6bMTf0LGp3U4&dib_tag=se&keywords=gaming+desktops&qid=1738850902&sr=8-3"

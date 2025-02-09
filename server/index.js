@@ -1,21 +1,19 @@
 import express from 'express'
 import promptRoutes from "./routes/prompt.route.js" 
+import detailsRoutes from "./routes/details.route.js"
 import cors from 'cors'
 import dotenv from 'dotenv'
+import mongoose from 'mongoose'
 
 dotenv.config()
-// const allowedOrigins = [
-//     "http://localhost:5173"
-// ]
-
-// const corsOptions = {
-//     origin: allowedOrigins,
-//     methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed request methods
-//     allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
-//     credentials: true, // Allow cookies if needed
-// }
 
 
+mongoose.connect(process.env.MONGO_URI)
+.then(() => console.log("Conneted to MONGO"))
+.catch((err) => console.log("Coudlnt connect to DB: ", err))
+
+
+// console.log("THE MONGO URI: ", process.env.MONGO_URI)
 
 const app = express()
 
@@ -25,6 +23,7 @@ app.use(cors())
 app.use(express.json());
 
 app.use('/api', promptRoutes)
+app.use('/api', detailsRoutes)
 
 
 const server = app.listen(3000, () => {

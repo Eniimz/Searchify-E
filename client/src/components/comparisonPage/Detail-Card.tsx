@@ -50,7 +50,14 @@ export function DetailCard({ product }: { product: Product }) {
         <img src={product.imageUrl || "/placeholder.svg"} alt={product.ProductTitle} className="object-cover rounded-md" />
       </div>
       <div className="p-6">
-        <h2 className="text-2xl font-bold mb-2 text-gray-100 flex items-center gap-2"><ArrowUpRightFromSquareIcon /> <span>{product.ProductTitle}</span></h2>
+        <h2
+        className="text-2xl font-bold mb-2 text-gray-100 flex  gap-2 line-clamp-3">
+          
+          <ArrowUpRightFromSquareIcon size={'50'}/>
+        
+          <span>{product.ProductTitle}</span>
+         
+        </h2>
         <div className="flex items-center mb-4">
           <div className="flex items-center mr-4">
             <Star className="w-5 h-5 text-yellow-400 mr-1" />
@@ -88,7 +95,7 @@ export function DetailCard({ product }: { product: Product }) {
           </div>
         </div>
       </div>
-      <div className="bg-gray-800/80 p-6">
+      <div className="p-6">
         <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white">
           Add to Cart
         </Button>

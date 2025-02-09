@@ -14,6 +14,7 @@ const products: Product[] = [
     {
         id: '33',
         title: 'Govee RGBIC LED Strip Lights, Smart LED Lights Work with Alexa and Google Assistant, LED Lights for Bedroom WiFi App Control Segmented DIY Multiple Colors, Color Changing Light, NOT Waterproof',
+        query: "laptop",
         price: 72.99,
         rating: 4.5,
         description: 'This product is certified by Amazon to work with Alexa. This product can be controlled with your voice through Alexa-enabled devices such as Amazon Echo and Amazon Tap.',
@@ -23,6 +24,7 @@ const products: Product[] = [
       {
         id: '44',
         title: 'DAYBETTER LED Strip Lights 200 ft (2 Rolls of 100 ft), Smart App Control Lighting Bedroom Rome Decor with Remote, RGB Music Sync Color Changing LED Lights for Party',
+        query: "laptops",
         price: 19.99,
         rating: 4.4,
         description: 'N/A',
@@ -109,7 +111,7 @@ export default function ProductDetails() {
         {/* </div> */}
       </section>
       <div className="border-l overflow-auto w-[55%]">
-        <ProductSidebar product={products[0]} />
+        <ProductSidebar  />
       </div>
     </div>
   )
