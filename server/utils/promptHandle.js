@@ -47,6 +47,7 @@ export const getUserProductPrompt = async (userQuery) => {
   })
 
   const result = await promptOpenAi(msgs)
+  
   console.log('Extracted Data:', result);
 
   msgs.push({

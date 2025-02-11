@@ -203,4 +203,3 @@ export function DetailCard({ product }: { product: Product }) {
     </div>
   )
 }
-

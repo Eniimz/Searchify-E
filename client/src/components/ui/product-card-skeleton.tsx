@@ -1,8 +1,8 @@
 import { SkeletonLoader, SkeletonLine, SkeletonRect } from "./skeleton-loader"
 
-export function SmallProductCardSkeleton() {
+export function ProductCardSkeleton() {
   return (
-    <div className="bg-gray-800/40 rounded-lg overflow-hidden shadow-sm w-48">
+    <div className="bg-gray-800/40 rounded-lg overflow-hidden shadow-sm w-[500px]">
       <SkeletonLoader className="space-y-2">
         {/* Image placeholder */}
         <SkeletonRect className="w-full aspect-square bg-gray-700/60" />

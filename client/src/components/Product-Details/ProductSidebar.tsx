@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Product } from "@/lib/types"
-import { DetailCard } from "../comparisonPage/Detail-Card"
+import { DetailCard } from "../global/Detail-Card"
 import { div, use } from "framer-motion/client";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";

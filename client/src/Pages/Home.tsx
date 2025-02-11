@@ -6,10 +6,12 @@ import { Input } from "@/components/ui/input"
 import Loader from "@/components/loader";
 import clsx from "clsx"
 import ProductCard from "@/components/global/Product-card"
-import { GitCompareArrows } from "lucide-react";
+import { ArrowUpRightFromCircle, ArrowUpRightFromSquare, CornerRightUp, GitCompareArrows } from "lucide-react";
 import {Product} from "../lib/types"
 import PaginationControls from "@/components/global/Pagination-controls";
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { useDispatch } from "react-redux";
+import { selectedCompareProducts } from "@/redux/productSlice";
 
 
 
@@ -20,53 +22,27 @@ export default function Home() {
     previousStore ?: 4 
   }
 
+  type selectedProduct = {
+    id: string,
+    title: string
+  }
 
-
-    // const products = [
-    //   {
-    //     title: 'Logitech G502 Performance Gaming Mouse',
-    //     description: 'HERO 25K Sensor, 25,600 DPI, RGB, Adjustable Weights, 11 Programmable Buttons, On-Board Memory, PC / Mac',
-    //     price: 44.99,
-    //     rating: 4.6,
-    //     image: 'https://m.media-amazon.com/images/I/11++B3A2NEL._SS200_.png',
-    //     url: 'https://amazon.com/Logitech-G502-Performance-Gaming-Mouse/dp/B07GBZ4Q68/ref=sr_1_1?dib=eyJ2IjoiMSJ9.D51lWxt7OD5GPXMrCM-hnnHpwbQ5ea1aTLHft-lQuIl-kmXwBzdrjy57OsEMOjI4N-80uT-ie9iGtmHqJocIrt_NLD4y3E3qnGpJ1m_F3ahSIPt_ILMkP24K7pCaGMgGTWgT0fEfd9zQ1Vt3sPRmCfp6hR9qQFmB2_QoSqE7Qe-X-gUUQ8HO6PWawHDyb0OCR-kfQjcRe7ye5yCzQfZBcT9lX1HD-g54UkO1gR_-m-o.JfgqaGJvpMOY7SvYmooHuZEsvC5UExCXHg_eJ7P8mj8&dib_tag=se&keywords=gaming+mouse&qid=1738457675&sr=8-1'
-    //   },
-    //   {
-    //     title: 'Redragon M612 Predator RGB Gaming Mouse',
-    //     description: 'Programmable gaming mouse with software',
-    //     price: 19.99,
-    //     rating: 4.5,
-    //     image: 'https://m.media-amazon.com/images/I/11++B3A2NEL._SS200_.png',
-    //     url: 'https://amazon.com/Redragon-M612-Predator-Programmable-Software/dp/B08SJ5Z8JL/ref=sr_1_3'
-    //   },
-    //   {
-    //     title: 'Razer Basilisk V3 Pro Wireless Gaming Mouse',
-    //     description: 'Certified - Refurbished, 4.5 out of 5 stars, 9 product ratings',
-    //     price: 85.88,
-    //     rating: 5,
-    //     image: 'https://i.ebayimg.com/images/g/z2gAAOSwFrBmZIGW/s-l140.webp',
-    //     url: 'https://www.ebay.com/itm/387863605258'
-    //   },
-    //   {
-    //     title: 'Logitech G Pro X SUPERLIGHT Wireless Gaming Mouse',
-    //     description: 'Esports Grade Performance',
-    //     price: 69.99,
-    //     rating: 5,
-    //     image: 'https://i.ebayimg.com/images/g/vhwAAOSwWohnGpIy/s-l140.webp',
-    //     url: 'https://www.ebay.com/p/27052806029'
-    //   }
-    // ]
+  const navigate = useNavigate()
+  const dispatch = useDispatch()
 
   const [ searchParams ] = useSearchParams()
+
   const page = Number(searchParams.get('page')) || 1
 
   const [products, setProducts] = useState<Product[] | []>([])
+
   const [input, setInput] = useState("")
   const [searchQuery, setSearchQuery] = useState("")
+
   const [loading, setLoading] = useState(false)
 
   const [isCompareMode, setCompareMode] = useState(false)
-  const [selectedProducts, setSelectedProducts] = useState<string[]>([])
+  const [selectedProducts, setSelectedProducts] = useState<selectedProduct[]>([])
 
   const productsRef = useRef<HTMLDivElement | null>(null)
 
@@ -123,18 +99,46 @@ export default function Home() {
 
 
     const toggleCompareMode = () => {
-      setCompareMode((prevValue) => !prevValue)
+      
+      if(isCompareMode){
+        console.log("Cancel compare")
+        setCompareMode((prevValue) => !prevValue)
+        setSelectedProducts([])
+
+      }else{
+        console.log("Cancel compare")
+        setCompareMode((prevValue) => !prevValue)
+        
+      }
+
     }
 
-    const handleSelectedProducts = (id: string) => {
-
+    const handleSelectedProducts = (id: string, title: string) => {
       setSelectedProducts((prevProducts) => {
-        if(prevProducts.length >= 2){
-          return prevProducts.filter(p_id => p_id !== id) 
-        }else{
-          return [...prevProducts, id]
+        // Check if the product is already selected
+        const isProductSelected = prevProducts.some(
+          (p) => p.id === id && p.title === title
+        );
+    
+        if (isProductSelected) {
+          // If the product is already selected, remove it
+          return prevProducts.filter((p) => p.id !== id || p.title !== title);
+        } else {
+          // If the product is not selected and fewer than 2 products are selected, add it
+          if (prevProducts.length < 2) {
+            return [...prevProducts, { id, title }];
+          } else {
+            // If 2 products are already selected, do nothing
+            return prevProducts;
+          }
         }
-      })
+      });
+    };
+
+    const removeSelected = ([]) => {
+      
+      setSelectedProducts([])
+      setCompareMode(false)
 
     }
 
@@ -157,6 +161,13 @@ export default function Home() {
 
     }, [page])
 
+
+    const handleNavigateCompare = () => {
+
+      dispatch(selectedCompareProducts(selectedProducts))
+
+      navigate('/compare')
+    }
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">
@@ -218,16 +229,34 @@ export default function Home() {
             
             <h2 className="text-2xl md:text-3xl font-bold text-center mb-12 text-gray-100">Featured Products</h2>
             
-            <Button
-              onClick={toggleCompareMode}
-              className={`${
-                isCompareMode
-                  ? "bg-red-500/30 hover:bg-red-600/30"
-                  : "bg-gradient-to-r from-green-500/30 to-blue-500/30 hover:from-green-600/30 hover:to-blue-600/30"
-              } text-white border border-white/30 sticky`}
+            <div className="flex gap-6">
+
+              <Button
+                onClick={toggleCompareMode}
+                className={`${
+                  isCompareMode
+                    ? "bg-red-500/30 hover:bg-red-600/30"
+                    : "bg-gradient-to-r from-green-500/30 to-blue-500/30 hover:from-green-600/30 hover:to-blue-600/30"
+                } text-white border border-white/30 sticky`}
+              >
+                {isCompareMode ? "Cancel Compare" : `Compare`} <GitCompareArrows />
+              </Button>
+
+              {
+                selectedProducts.length === 2 && (
+                  <Button
+              onClick={handleNavigateCompare}
+              className={` bg-gradient-to-r from-green-500/30 to-blue-500/30 hover:from-green-600/30 hover:to-blue-600/30
+              text-white border border-white/30 sticky`}
             >
-              {isCompareMode ? "Cancel Compare" : `Compare`} <GitCompareArrows />
+              Go to Compare <ArrowUpRightFromSquare />
             </Button>
+                ) 
+              }    
+
+            </div>
+
+            
 
           </div>
           <div className={flexOrGrid} ref={productsRef} >
@@ -238,7 +267,9 @@ export default function Home() {
 
               (products.map((product, index) => (
                 <ProductCard key={index} product = {product} index = {index} 
-                isSelected = {selectedProducts.includes(product.id)}
+                isSelected = {selectedProducts.some(
+                  (p) => p.id === product.id && p.title === product.title
+                )}
                 isCompareMode = {isCompareMode}
                 setSelectedProducts = {handleSelectedProducts}
                 />)))
@@ -247,7 +278,7 @@ export default function Home() {
           </div>
 
             <div className="flex justify-center">
-              <PaginationControls />
+              <PaginationControls setSelectedProducts = {removeSelected}/>
             </div>
 
 

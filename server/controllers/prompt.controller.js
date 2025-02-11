@@ -74,7 +74,8 @@ export const getPromptAndFetch = async (req, res, next) => {
         
         allProducts = allProducts.slice(0, 9).map((product) => {
             return {
-                id: store === 'Amazon' ?  extractAmazonId(product.link) : extractEbayId(product.link),
+                // id: store === 'Amazon' ?  extractAmazonId(product.link) : extractEbayId(product.link),
+                id: uuidv4(),
                 query,
                 ...product
             }
@@ -152,7 +153,8 @@ const preFetchNextPage = (query, nextPage, startIndex, endIndex) => {
 
         nextPageData = nextPageData.slice(0, 9).map((product) => { //the prefetched products
             return {
-                id: store === 'Amazon' ? extractAmazonId(product.link) : extractEbayId(product.link),
+                // id: store === 'Amazon' ? extractAmazonId(product.link) : extractEbayId(product.link),
+                id: uuidv4(),
                 query,
                 ...product
             }

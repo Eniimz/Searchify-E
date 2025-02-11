@@ -1,6 +1,6 @@
 import express from 'express'
 import promptRoutes from "./routes/prompt.route.js" 
-import detailsRoutes from "./routes/product.route.js"
+import productRoutes from "./routes/product.route.js"
 import cors from 'cors'
 import dotenv from 'dotenv'
 import mongoose from 'mongoose'
@@ -23,7 +23,9 @@ app.use(cors())
 app.use(express.json());
 
 app.use('/api', promptRoutes)
-app.use('/api', detailsRoutes)
+
+app.use('/api', productRoutes)
+
 
 
 const server = app.listen(3000, () => {

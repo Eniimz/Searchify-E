@@ -13,7 +13,7 @@ type productCardProps = {
     index: number,
     isCompareMode: boolean,
     isSelected: boolean,
-    setSelectedProducts: (id: string) => void
+    setSelectedProducts: (id: string, title: string) => void
 
     
 }
@@ -21,7 +21,7 @@ type productCardProps = {
 
 const ProductCard: React.FC<productCardProps> = ({ product, index, isCompareMode, isSelected, setSelectedProducts }) => {
   
-  
+   
   const navigate = useNavigate()
 
   // const buttonClick = (url: string) => {
@@ -30,9 +30,9 @@ const ProductCard: React.FC<productCardProps> = ({ product, index, isCompareMode
   //     window.open(url, '_blank') 
   // }
   
-  const onSelectForCompare = (id: string) => {
+  const onSelectForCompare = (id: string, title: string) => {
     
-    setSelectedProducts(id)
+    setSelectedProducts(id, title)
     
   }
 
@@ -52,12 +52,12 @@ const ProductCard: React.FC<productCardProps> = ({ product, index, isCompareMode
         >
         <Card className="group relative overflow-hidden bg-gray-800/50 border-gray-700 hover:border-gray-600 
         transition-all duration-300 min-h-[450px] w-[310px]">
-        {/* {isCompareMode && ( */}
+        {isCompareMode && (
           <div className="absolute top-2 left-2 z-10">
           <div className="relative">
             <Checkbox
               checked={isSelected}
-              onCheckedChange={() => onSelectForCompare(product.id)}
+              onCheckedChange={() => onSelectForCompare(product.id, product.title)}
               id={`compare-${product.id}`}
               className="peer border-2 border-white/30 bg-transparent rounded-md w-6 h-6 transition-all duration-200 data-[state=checked]:bg-transparent data-[state=checked]:border-blue-500/70"
             />
@@ -79,7 +79,7 @@ const ProductCard: React.FC<productCardProps> = ({ product, index, isCompareMode
             </div>
             <div className="sr-only">Select for comparison</div>
           </div>
-        
+        )}  
           <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           <div className="p-4 flex flex-col h-full">
             <div className="aspect-square relative rounded-lg overflow-hidden mb-4 flex justify-center">
