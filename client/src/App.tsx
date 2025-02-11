@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom"
 import Chat from "./Pages/Chat"
 import ProductDetails from "./Pages/ProductDetails"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import Wishlist from "@/Pages/Wishlist"
 
 
 
@@ -19,7 +20,8 @@ function App() {
           <Route path="/" element = {<Home />}/>
           <Route path="/compare" element = {<ComparePage />} />
           <Route path="/chat/:id" element = {<Chat />} />
-          <Route path="/products/:productId" element = {<ProductDetails />}  />
+          <Route path="/products/:productTitle" element = {<ProductDetails />}  /> 
+          <Route path="/wishlist" element = { <Wishlist /> } />
         </Routes>
       
       

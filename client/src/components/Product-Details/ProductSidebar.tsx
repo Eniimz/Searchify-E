@@ -1,11 +1,12 @@
+//@ts-nocheck
+
 import { Button } from "@/components/ui/button"
 import { Product } from "@/lib/types"
 import { DetailCard } from "../comparisonPage/Detail-Card"
 import { div, use } from "framer-motion/client";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-
-//@ts-nocheck
+import { ProductOverviewSkeleton } from "../ui/product-overview-skeleton";
 
 interface ProductSidebarProps {
   product: Product | null
@@ -54,12 +55,16 @@ const productData = {
   export default function ProductSidebar() {
     
     const [product, setProduct] = useState<any>(null)
-    const { productId } = useParams()
-    
+
+    const { productTitle } = useParams()
+    const [searchParams] = useSearchParams()
+
     const fetchProductDetails = async () => {
   
+      const id = searchParams.get("id") 
+
       try{
-        const res = await fetch(`http://localhost:3000/api/products/${productId}`)
+        const res = await fetch(`http://localhost:3000/api/products/${productTitle}?id=${id}`)
   
         const data = await res.json();
   
@@ -83,16 +88,16 @@ const productData = {
 
 
   return (
-    <div>
+    <div className="bg-gradient-to-b from-gray-900 via-gray-900 to-gray-900"> 
         {product ? 
 
           <div>
             <DetailCard product={product}/>
           </div> :
+ 
+          <ProductOverviewSkeleton />
+              
 
-        <div className="h-full flex items-center justify-center p-4">
-          <p className="text-gray-500">Select a product to view details</p>
-        </div>
       }
     </div>
   )

@@ -250,6 +250,7 @@ export default function Home() {
               <PaginationControls />
             </div>
 
+
         </div>
       </section>
     </main>

@@ -2,7 +2,7 @@
 import { ChatInput } from "@/components/chat -page/Chat-input"
 import Message from "@/components/chat -page/Message"
 import { Sidebar } from "@/components/chat -page/Sidebar"
-import { Skeleton } from "@/components/ui/skeleton"
+import { ContentSkeleton } from "@/components/ui/content-skeleton"
 import { pre, tr } from "framer-motion/client"
 import React, { useEffect, useRef, useState } from "react"
 
@@ -53,7 +53,7 @@ export default function Page() {
       setChatMessages((prevMessages) => [...prevMessages, userMessage])
 
       const loadingSkeletion: chatMessage = {
-        message: <Skeleton />,
+        message: <ContentSkeleton />,
         isLoading: true,
         isUser: false
       }

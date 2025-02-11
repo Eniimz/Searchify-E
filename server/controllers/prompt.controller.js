@@ -72,9 +72,9 @@ export const getPromptAndFetch = async (req, res, next) => {
         : await scrapeEbay(product, page)
 
         
-        allProducts = allProducts.map((product) => {
+        allProducts = allProducts.slice(0, 9).map((product) => {
             return {
-                id: uuidv4(),
+                id: store === 'Amazon' ?  extractAmazonId(product.link) : extractEbayId(product.link),
                 query,
                 ...product
             }
@@ -104,8 +104,18 @@ export const getPromptAndFetch = async (req, res, next) => {
 
 }
 
+function extractEbayId(url) {
+    const regex = /\/itm\/(\d+)/;
+    const match = url.match(regex);
+    return match ? match[1] : null;
+  }
 
-
+  function extractAmazonId(url) {
+    const regex = /\/dp\/([A-Z0-9]{10})/;  // Regex for extracting ASIN
+    const match = url.match(regex);
+    return match ? match[1] : null;  // Return ASIN if found
+  }
+  
 const preFetchNextPage = (query, nextPage, startIndex, endIndex) => {
 
     if(nextPage > pageLimit) return
@@ -137,10 +147,24 @@ const preFetchNextPage = (query, nextPage, startIndex, endIndex) => {
     ? scrapeAmazon(query,  nextPage)
     : scrapeEbay(query, nextPage)
 
-    nextPageDataPromise.then((nextPageData) => {
+    nextPageDataPromise.then(async (nextPageData) => {
         console.log("caching prefetch...")
+
+        nextPageData = nextPageData.slice(0, 9).map((product) => { //the prefetched products
+            return {
+                id: store === 'Amazon' ? extractAmazonId(product.link) : extractEbayId(product.link),
+                query,
+                ...product
+            }
+        })
         cache.set(cacheKey, nextPageData)
         console.log("prefetch cached??????: ", cache.get(cacheKey))
+
+        console.log("---Saving prefetched data to db----")
+
+
+
+        await saveToDatabase(nextPageData)
         logCache()
     })
 

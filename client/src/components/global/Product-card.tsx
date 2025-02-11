@@ -52,7 +52,7 @@ const ProductCard: React.FC<productCardProps> = ({ product, index, isCompareMode
         >
         <Card className="group relative overflow-hidden bg-gray-800/50 border-gray-700 hover:border-gray-600 
         transition-all duration-300 min-h-[450px] w-[310px]">
-        {isCompareMode && (
+        {/* {isCompareMode && ( */}
           <div className="absolute top-2 left-2 z-10">
           <div className="relative">
             <Checkbox
@@ -79,7 +79,7 @@ const ProductCard: React.FC<productCardProps> = ({ product, index, isCompareMode
             </div>
             <div className="sr-only">Select for comparison</div>
           </div>
-        )}
+        
           <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           <div className="p-4 flex flex-col h-full">
             <div className="aspect-square relative rounded-lg overflow-hidden mb-4 flex justify-center">
@@ -107,7 +107,7 @@ const ProductCard: React.FC<productCardProps> = ({ product, index, isCompareMode
               <p className="text-gray-400 text-sm mb-4 line-clamp-2 h-10">{product.description ? product.description : "N/A" }</p>
               <div className="flex justify-between items-center mt-auto">
                 <span className="text-lg font-bold text-green-400 ">{product.price}</span>
-                <Link to={`/products/${product.id}`} className='z-10'>
+                <Link to={`/products/${product.title}?id=${product.id}`} className='z-10'>
                   <Button 
                   // onClick={() => handleRouteToDetails(product.id)}
                   className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 

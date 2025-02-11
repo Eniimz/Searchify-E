@@ -1,6 +1,6 @@
 import express from 'express'
 import promptRoutes from "./routes/prompt.route.js" 
-import detailsRoutes from "./routes/details.route.js"
+import detailsRoutes from "./routes/product.route.js"
 import cors from 'cors'
 import dotenv from 'dotenv'
 import mongoose from 'mongoose'

@@ -1,0 +1,35 @@
+import WishlistHeader from "../components/wishlist/wishlist-header"
+import WishlistGrid from "../components/wishlist/wishlist-grid"
+import { SearchBar } from "../components/wishlist/search-bar"
+
+export default function WishlistPage() {
+  return (
+    <div className="min-h-screen  bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden">
+      {/* Cyber grid background */}
+
+    
+
+      {/* <div className="absolute inset-0 bg-grid-cyber opacity-20" /> */}
+
+      {/* Animated gradient orbs */}
+      <div className="absolute top-0 -left-40 w-80 h-80 bg-red-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob" />
+      <div className="absolute top-0 -right-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000" />
+      <div className="absolute -bottom-40 left-120 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000" />
+
+      <div className="relative">
+          
+          <div className="relative px-4 pt-20 overflow-hidden">
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:14px_24px]" />
+
+            <WishlistHeader />
+            <SearchBar />
+          </div>
+
+        <div className="container mx-auto px-4 py-4 ">
+          <WishlistGrid />
+        </div>
+      </div>
+    </div>
+  )
+}
+

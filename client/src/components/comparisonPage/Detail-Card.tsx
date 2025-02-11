@@ -1,8 +1,10 @@
-// import Image from "next/image"
-import { ArrowBigLeftDash, ArrowBigLeftIcon, ArrowLeft, ArrowLeftIcon, ArrowLeftToLine, ArrowUpRightFromSquareIcon, LucideArrowBigLeft, LucideArrowLeft, Star, Truck } from "lucide-react"
+//@ts-nocheck
+import { ArrowBigLeftDash, ArrowBigLeftIcon, ArrowLeft, ArrowLeftIcon, ArrowLeftToLine, ArrowUpRightFromSquareIcon, LucideArrowBigLeft, LucideArrowLeft, SparkleIcon, Sparkles, Star, Truck } from "lucide-react"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { useNavigate } from "react-router-dom"
+import { useState } from "react"
 
 interface ProductFeature {
   feature: string
@@ -32,7 +34,89 @@ interface Product {
 
 export function DetailCard({ product }: { product: Product }) {
 
+  const navigate = useNavigate()
+  const [aiRating, setAiRating] = useState(null)
+
+
+  const addToWishlist = (product) => {
+
+    try{
+
+      fetch("http://localhost:3000/wishlist", {
+        method: 'POST',
+        headers: { 'Content-Type' : 'application/json' },
+        body: JSON.stringify(product)
+      }).then((res) => {
+        const data = res.json()
+
+        console.log("Data: ", data)
+
+      })
+
+      
+
+    }catch(err){
+      console.error("Error while adding to wishilst: ", err)
+    }
+
+
+
+  }
+
   const handleBack = () => {
+    navigate('/')
+  }
+
+  const safeParseFloat = (value) => {
+    if (typeof value === "string") {
+        value = value.trim(); // Remove spaces
+        if (value.startsWith("$")) {
+            value = value.slice(1); // Remove "$"
+        }
+    }
+    
+    const num = parseFloat(value);
+    return isNaN(num) ? 0 : num; // Default to 0 if NaN
+};
+
+  const getRatings = async (productDetails) => {
+
+    const { customerReviews, sellerInfo, price } = productDetails
+
+    const { numReviews: numCustomerReviews, overallRating: customerRating } = customerReviews
+
+    const { numReviews: numSellerReviews, sellerRating } = sellerInfo
+
+    const { listPrice: listedPrice, currentPrice, savings } = price
+
+
+    const predictInfo = {
+      customerRating: safeParseFloat(customerRating), 
+      numCustomerReviews: safeParseFloat(numCustomerReviews), 
+      sellerRating: safeParseFloat(sellerRating), 
+      numSellerReviews: safeParseFloat(numSellerReviews), 
+      savings: safeParseFloat(savings), 
+      listedPrice: safeParseFloat(listedPrice), 
+      currentPrice: safeParseFloat(currentPrice)
+    }
+
+    try{
+      const res = await fetch("http://localhost:5001/predict", {
+        method: 'POST',
+        headers: { 'Content-Type' : 'application/json' },
+        body: JSON.stringify(predictInfo)
+      })
+
+
+      const data = await res.json()
+
+      setAiRating(data.predictedRating)
+
+      console.log("The AI Ratings received: ", data)
+
+    }catch(err){
+      console.log('Error occured : ', err)
+    }
 
   }
 
@@ -46,8 +130,22 @@ export function DetailCard({ product }: { product: Product }) {
         </Button>
       </div>
 
-      <div className="flex justify-left rounded-md p-6">
-        <img src={product.imageUrl || "/placeholder.svg"} alt={product.ProductTitle} className="object-cover rounded-md" />
+      <div className="flex justify-between items-center rounded-md p-6 ">
+        <img src={product.imageUrl || "/placeholder.svg"} alt={product.ProductTitle} 
+        className="object-cover rounded-md  w-fit" />
+
+        <Button
+              onClick={() => getRatings(product)}
+              className={`bg-gradient-to-r from-green-500/30 to-blue-500/30 hover:from-green-600/30 hover:to-blue-600/30"
+              text-white border border-white/30 line-clamp-2 flex h-12`}
+            >
+              {
+                aiRating 
+                ? <span className="flex items-center"> <Star className="w-4 h-4 text-yellow-400 mr-1" /> {aiRating} </span>
+                : <span className="flex gap-2 items-center"> <Sparkles /> Get AI Personalized Ratings </span>
+              }
+            </Button>
+
       </div>
       <div className="p-6">
         <h2
@@ -96,8 +194,10 @@ export function DetailCard({ product }: { product: Product }) {
         </div>
       </div>
       <div className="p-6">
-        <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white">
-          Add to Cart
+        <Button 
+        onClick={() => addToWishlist(product)}
+        className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white">
+          Wishlist
         </Button>
       </div>
     </div>
