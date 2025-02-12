@@ -1,6 +1,7 @@
-import { date } from "zod";
 import { Product } from "../../models/product.model.js";
 import { promptOpenAi } from "../../utils/azure-openai.js";
+import FirecrawlApp from "@mendable/firecrawl-js";
+import { z } from "zod";
 
 export const fetchProductCardDetails = async (req, res, next) => {
 
@@ -34,7 +35,7 @@ export const fetchProductCardDetails = async (req, res, next) => {
         
           console.log("Found Products: ", [productCard1, productCard2])
 
-          const AIresponse = await getComparisonDetails(productCard1.title, productCard2.title)
+          const AIresponse = await getComparisonDetails(productCard1.link, productCard2.link)
 
           res.status(200).json({
             compareProduct1: productCard1,
@@ -51,101 +52,79 @@ export const fetchProductCardDetails = async (req, res, next) => {
 }
 
 
-const getComparisonDetails = async (product1, product2) => {
+const getComparisonDetails = async (url1, url2) => {
+  try {
 
-    const schema = {
-        product1: {
-          features: [
-            {
-              feature: "feature name in string",
-              details: "feature details in string"
-            },
-            {
-              feature: "feature name in string",
-              details: "feature details in string"
-            },
-            {
-              feature: "feature name in string",
-              details: "feature details in string"
-            },
-            {
-              feature: "feature name in string",
-              details: "feature details in string"
-            },
-            {
-              feature: "feature name in string",
-              details: "feature details in string"
-            }
-          ],
-          ai_rating: "rating out of 5",
-          ai_recommendation: "brief recommendation based on features and use cases"
-        },
-        product2: {
-        
-          features: [
-            {
-              feature: "feature name in string",
-              details: "feature details in string"
-            },
-            {
-              feature: "feature name in string",
-              details: "feature details in string"
-            },
-            {
-              feature: "feature name in string",
-              details: "feature details in string"
-            },
-            {
-              feature: "feature name in string",
-              details: "feature details in string"
-            },
-            {
-              feature: "feature name in string",
-              details: "feature details in string"
-            }
-          ],
-          ai_rating: "rating out of 5",
-          ai_recommendation: "brief recommendation based on features and use cases"
-        },
-        summary: "A brief comparison summary of the two products."
-      };
     
-      const systemPrompt = `
-        You are a helpful shopping assistant. Your task is to compare two products based on their name and provide a detailed comparison in a structured JSON format.
-    
-        Input: Two product names (e.g., "Apple iPhone 12 mini" and "Apple iPhone 12").
-    
-        Output: A JSON object with the following schema:
-        ${JSON.stringify(schema, null, 2)}
-    
-        Instructions:
-        1. Compare the two products based on their features.
-        2. Provide exactly 5 features for each product. Each feature should have a "feature" (name) and "details" (description).
-        3. Provide an AI rating for each product (out of 10) based on its features and overall value.
-        4. Provide an AI recommendation for each product, explaining why it might be a good choice for certain users.
-        5. Include a brief summary comparing the two products.
-        6. Ensure the output strictly adheres to the provided schema.
-        7. Do not include any additional text or explanations outside the JSON object.
-        8. If any information is unavailable, set the value to null.
-      `;
-    
-      const userPrompt = `
-        Compare the following two products:
-        1. ${product1.title}
-        2. ${product2.title}
-      `;
-    
-      const messages = [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt }
-      ];
-    
-      const response = await promptOpenAi(messages)
+    // url1 = 'https://www.amazon.com/16-0-inch-Windows-Quad-Core-Processor-Display/dp/B0DSKPFRKP/ref=sr_1_1_sspa?dib=eyJ2IjoiMSJ9.pOGFkEDyfRRZ4GTiQOeqTY3xdoD4deadpUg1XyRqz9TcygpzfjxbJdcZ7Eg3Trcmhbj1DTc115LDv2scS0gNc3AJDaxLqXygKJbm5aUBD9zQK9VidjENNzIv1RKgcBjI-Gls3gQ-xYCgUca3l8juUKcx9mFv73KnQzvFesVGU6WVzy__FnnUmagSl2N34RmuvYE-WdTHWngLDfBIHroeuJLk7xAwWXRQ6pN3JsDAIuE.gUWsv67AvV35bMlcqdhy21F-iyqClFQZic_-PMZUzuc&dib_tag=se&keywords=gaming+laptop&qid=1739318981&sr=8-1-spons&sp_csd=d2lkZ2V0TmFtZT1zcF9hdGY&psc=1';
+    // url2 = 'https://www.amazon.com/KAIGERR-Computer-Graphics-16-1-inch-Display/dp/B0DR8859K6/ref=sr_1_1_sspa?dib=eyJ2IjoiMSJ9.pOGFkEDyfRRZ4GTiQOeqTY3xdoD4deadpUg1XyRqz9TcygpzfjxbJdcZ7Eg3Trcmhbj1DTc115LDv2scS0gNc3AJDaxLqXygKJbm5aUBD9zQK9VidjENNzIv1RKgcBjI-Gls3gQ-xYCgUca3l8juUKcx9mFv73KnQzvFesVGU6WVzy__FnnUmagSl2N34RmuvYE-WdTHWngLDfBIHroeuJLk7xAwWXRQ6pN3JsDAIuE.gUWsv67AvV35bMlcqdhy21F-iyqClFQZic_-PMZUzuc&dib_tag=se&keywords=gaming+laptop&qid=1739318948&sr=8-1-spons&sp_csd=d2lkZ2V0TmFtZT1zcF9hdGY&psc=1';
 
-      console.log("----AI Response----")
+    // Extract details for the first product
+    console.log("scraping 1st product")
+    const product1Details = await getProductDetails(url1);
 
-      console.log(response)
+    // Extract details for the second product
+    console.log("scraping 2nd product")
+    const product2Details = await getProductDetails(url2);
 
-      return response
-      
-}
+    console.log("Now starting comparison")
+    // Combine the results for comparison
+    const comparisonResult = {
+      product1: product1Details,
+      product2: product2Details,
+    };
+
+    console.log("Comparison Result:", comparisonResult);
+    return comparisonResult;
+  } catch (error) {
+    console.error("Error during comparison:", error);
+    throw error;
+  }
+};
+
+
+const getProductDetails = async (url) => {
+  const app = new FirecrawlApp({
+    apiKey: "fc-6d74df6872c0461ebef360fce2f44ca0"
+  });
+
+  const productUrls = {
+    url1 : url,
+  }
+
+  const ProductFeatureSchema = z.object({
+    feature: z.string(), // Feature name
+    details: z.string()  // Feature details
+  });
+
+  const ProductSchema = z.object({
+    // name: z.string(), // Product name
+    features: z.array(ProductFeatureSchema), // Exactly 3 features
+    // ai_rating: z.string(), // AI rating
+    // ai_recommendation: z.string() // AI recommendation
+  });
+
+  const systemPrompt = `
+    You are a helpful shopping assistant. Your task is to extract data about a 3 product features from the given URL and return the result in a structured JSON format.
+
+  `;
+
+  try {
+    const scrapeResult = await app.extract([
+      productUrls.url1
+    ], {
+      prompt: systemPrompt,
+      schema: ProductSchema
+    });
+
+    if (!scrapeResult.success) {
+      throw new Error(`Failed to scrape: ${scrapeResult.error}`);
+    }
+
+    console.log("Scrape Result:", scrapeResult.data);
+    return scrapeResult.data;
+  } catch (error) {
+    console.error("Error during extraction:", error);
+    throw error;
+  }
+};

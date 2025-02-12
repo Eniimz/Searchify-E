@@ -1,6 +1,6 @@
-import { Product } from "../models/product.model.js";
-import { ProductDetails } from "../models/productDetails.model.js";
-import { scrapeDetails } from "../utils/Details-scrape/FireewallScrape.js";
+import { Product } from "../../models/product.model.js";
+import { ProductDetails } from "../../models/productDetails.model.js";
+import { scrapeDetails } from "../../utils/Details-scrape/FireewallScrape.js";
 import { MongoClient } from "mongodb";
 import { v4 as uuidv4 } from 'uuid'
 

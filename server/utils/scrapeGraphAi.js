@@ -1,7 +1,7 @@
 import { smartScraper } from 'scrapegraph-js';
 import { z } from "zod"
  
-const apiKey = "sgai-f44da72d-91b2-455b-8003-6b66c5b17029";
+const apiKey = "sgai-8ce50a6c-e755-40a8-ae6f-127fa09c564b";
 
 export const schema = z.object({
   title: z.string().describe('The title of the product'),

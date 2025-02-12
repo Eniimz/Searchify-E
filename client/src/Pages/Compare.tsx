@@ -1,238 +1,253 @@
+// import Image from "next/image"
 //@ts-nocheck
-// import { useSearchParams } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { useEffect, useState } from "react"
-import { CompareCard } from "@/components/comparisonPage/CompareCard"
-import { div, p } from "framer-motion/client"
-import { CompareFeatures } from "@/components/comparisonPage/CompareFeatures"
-import { useSelector } from "react-redux"
+import { ArrowRight, Star } from "lucide-react"
 import axios from 'axios'
-import { ProductCardSkeleton } from "@/components/ui/product-card-skeleton"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { useEffect, useState } from "react"
+import { useSelector } from "react-redux"
 import Loader from "@/components/loader"
 
-export default function Compare() {
-//   const searchParams = useSearchParams()
-//   const productIds = searchParams.get("products")?.split(",").map(Number) || []
-//   const selectedProducts = products.filter((product) => productIds.includes(product.id))
-
-interface ProductFeature {
-  feature: string
-  details: string
-}
-
 interface Product {
-  ProductTitle: string
-  price: {
-    listPrice: string
-    currentPrice: string
-    savings: string
-  }
-  sellerInfo: {
-    sellerName: string
-    sellerRating: number
-    numReviews: number
-  }
-  customerReviews: {
-    overallRating: number
-    numReviews: number
-  }
-  productFeatures: ProductFeature[]
-  shipping: string
-  imageUrl?: string
+  name: string
+  image: string
+  price: string
+  description: string
 }
 
-const product1 = {
-  name: "Premium Wireless Headphones",
+interface FeatureComparison {
+  name: string
+  description1: string
+  description2: string
+}
+
+const product1: Product = {
+  name: "Premium Smartwatch",
+  image: "/placeholder.svg?height=400&width=400",
   price: "$299.99",
-  image: "/placeholder.svg?height=256&width=256",
-  rating: 4,
-  description: "High-quality sound with noise cancellation technology.",
-  features: [
-    {
-      name: "Active Noise Cancellation",
-      description:
-        "Advanced ANC technology that adapts to your environment, blocking out unwanted noise for an immersive listening experience.",
-    },
-    {
-      name: "40mm Dynamic Drivers",
-      description:
-        "Large, powerful drivers deliver rich, detailed sound across all frequencies, from deep bass to crisp highs.",
-    },
-    {
-      name: "30-hour Battery Life",
-      description:
-        "Long-lasting battery provides up to 30 hours of playtime on a single charge, perfect for extended use and travel.",
-    },
-    {
-      name: "Bluetooth 5.0",
-      description:
-        "Latest Bluetooth technology ensures stable, high-quality wireless connection with improved range and lower power consumption.",
-    },
-    {
-      name: "Touch Controls",
-      description:
-        "Intuitive touch-sensitive controls on the earcup for easy management of music, calls, and voice assistant.",
-    },
-  ],
+  description: "Advanced smartwatch with comprehensive health tracking and extended battery life.",
 }
 
-const product2 = {
-  name: "Ultra-Light Running Shoes",
-  price: "$129.99",
-  image: "/placeholder.svg?height=256&width=256",
-  rating: 5,
-  description: "Engineered for speed and comfort during long runs.",
-  features: [
-    {
-      name: "Breathable Mesh Upper",
-      description:
-        "Lightweight, breathable mesh material keeps your feet cool and dry during intense workouts or long-distance runs.",
-    },
-    {
-      name: "Responsive Foam Midsole",
-      description:
-        "Proprietary foam technology provides excellent energy return and cushioning, reducing fatigue and enhancing performance.",
-    },
-    {
-      name: "Durable Rubber Outsole",
-      description:
-        "High-traction rubber outsole offers excellent grip on various surfaces and enhanced durability for long-lasting wear.",
-    },
-    {
-      name: "Reflective Details",
-      description:
-        "Strategically placed reflective elements improve visibility during low-light conditions for safer running.",
-    },
-    {
-      name: "6.5 oz Weight",
-      description:
-        "Ultra-lightweight design at just 6.5 oz per shoe, reducing fatigue and allowing for faster, more efficient movement.",
-    },
-  ],
+const product2: Product = {
+  name: "Fitness Tracker Pro",
+  image: "/placeholder.svg?height=400&width=400",
+  price: "$149.99",
+  description: "Lightweight fitness tracker focusing on essential health features and long-lasting battery.",
 }
 
-const { compareProducts } = useSelector(state => state.product)
+const featureComparisons: FeatureComparison[] = [
+  {
+    name: "Health Monitoring",
+    description1:
+      "Comprehensive health suite including ECG, blood oxygen monitoring, and stress tracking. Provides detailed insights and personalized recommendations.",
+    description2:
+      "Basic health tracking with step counting and heart rate monitoring. Offers general activity insights and daily goals.",
+  },
+  {
+    name: "Battery Life",
+    description1:
+      "Up to 5 days of battery life with typical use. Fast charging capability provides a full day's charge in just 30 minutes.",
+    description2:
+      "Extended 7-day battery life. Low power consumption allows for longer use between charges, ideal for extended trips.",
+  },
+  {
+    name: "Display",
+    description1:
+      '1.4" AMOLED display with always-on capability. Vibrant colors and high contrast ratio for excellent visibility in all lighting conditions.',
+    description2:
+      '0.95" OLED display. Energy-efficient screen that provides clear visibility of essential information at a glance.',
+  },
+  {
+    name: "Water Resistance",
+    description1:
+      "5 ATM water resistance. Suitable for swimming and water sports, can withstand depths up to 50 meters.",
+    description2:
+      "IP67 water resistance. Protected against splashes and brief immersion, suitable for rain and hand washing.",
+  },
+]
 
-const [compareCards, setCompareCards] = useState([])
-const [productsInfo, setProductsInfo] = useState([])
-const [isLoading, setIsLoading] = useState(false)
+export default function ModernProductComparison() {
 
-const getProductCards = async () => {
+  const { compareProducts } = useSelector(state => state.product)
 
-  setIsLoading(true)
+  const [compareCards, setCompareCards] = useState([])
+  const [product1Features, setProduct1Features] = useState([])
+  const [product2Features, setProduct2Features] = useState([])
 
-  try{
-    const res = await axios.post(`http://localhost:3000/api/products/compare`,
-      compareProducts
-      )
+  const [AIRecommendations, setAIRecommendations] = useState({})
 
-    const data = res.data
-    
-    console.log("The res received: ", data)
+  const [isLoading, setIsLoading] = useState(false)
+  
+  const getProductCards = async () => {
+  
+    setIsLoading(true)
+  
+    try{
+      const res = await axios.post(`http://localhost:3000/api/products/compare`,
+        compareProducts
+        )
+  
+      const data = res.data
+      
+      console.log("The res received: ", data)
+  
+      setIsLoading(false)
+  
+      console.log("The compare products: ", compareProducts)
 
-    setIsLoading(false)
+      if(data){
+        setCompareCards([data.compareProduct1, data.compareProduct2 ])
+        
+        const { AIResponse } = data
 
-    if(data){
-      setCompareCards([data.compareProduct1, data.compareProduct2 ])
+        const { product1, product2 } = AIResponse
 
-      const { product1, product2 } = data.AIResponse
 
-      console.log("The product1: ", product1)
-      console.log("The product2: ", product2)
+        setProduct1Features(product1.features)
+        setProduct2Features(product2.features)
 
-      console.log("Both in array: ", [product1, product2 ])
-
-      setProductsInfo([product1, product2])
+        
+  
+        console.log("The AI data: ", data)
+      }
+  
+  
+  
+    }catch(err){
+      setIsLoading(false)
+      console.error("Err fetching compare products: ", err)
     }
-
-
-
-  }catch(err){
-    setIsLoading(false)
-    console.error("Err fetching compare products: ", err)
+  
   }
+  
+    useEffect(() => {
+      console.log("The compare products: ", compareProducts)
+      getProductCards()
+    }, [])
+  
+  
+    const selectedProducts = [product1, product2]
 
-}
 
-
-
-  useEffect(() => {
-    console.log("The compare products: ", compareProducts)
-    getProductCards()
-  }, [])
-
-
-  const selectedProducts = [product1, product2]
-
-  if (selectedProducts.length !== 2) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
-        <Card className="p-8 bg-gray-800/50 border-gray-700">
-          <h1 className="text-2xl font-bold text-gray-100 mb-4">Invalid Comparison</h1>
-          <p className="text-gray-300 mb-6">Please select two products to compare.</p>
-          <a href="/">
-            <Button className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white">
-              Return to Products
-            </Button>
-          </a>
-        </Card>
-      </div>
-    )
-  }
 
   return (
+    <section className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white">
 
-    <div className="
-    min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 p-8 ">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-extrabold text-white text-center mb-8">Product Comparison</h1>
-        <div className="grid md:grid-cols-2 gap-8 mb-12">
-          <div className="space-y-8">
-            {isLoading  ?
-            <div className="flex justify-center">
-              <ProductCardSkeleton />
-            </div>
+      <div className="container mx-auto px-4 py-12 max-w-4xl">
+        <h1 className="text-4xl text-center mb-12
+        font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-purple-600 text-transparent bg-clip-text
+        ">
+          Product Comparison
+        </h1>
 
-            : 
-            <div className="flex justify-center">
-              <CompareCard product={compareCards[0]}/>
-            </div>
+        <div className="flex flex-col md:flex-row justify-between items-center gap-8 mb-16">
+          <ProductCard product={compareCards[0]} />
+          <ArrowRight className="hidden md:block w-8 h-8 text-muted-foreground" />
+          <ProductCard product={compareCards[1]} />
+        </div>
 
-            }
-            <div>
-              <h4 className="text-xl font-semibold mb-4">Features</h4>
-              {isLoading ?
+        <div className="space-y-8">
+          {isLoading ?
+          <Loader /> :
+          product1Features?.map((feature, index) => {
+          const feature2 = product2Features[index]
+          return(
+          <FeatureComparisonCard key={index} 
+            product1 = {AIRecommendations.product1}
+            product2 = {AIRecommendations.product2}
+            product1Title = { compareProducts[0].title } 
+            product2Title = { compareProducts[1].title }
+            feature1={feature} 
+            feature2={feature2}
+            
+            isReversed={index % 2 !== 0} />
+
+          )})
+          
+          }
+          {/* {!isLoading &&
+            <Card>
+            <CardContent className="relative
+            bg-gray-900/40 backdrop-blur-xl rounded-xl border border-gray-800/50 overflow-hidden
+            p-6">
               
-              <Loader />
-
-              : <CompareFeatures features={productsInfo[0]?.features} />}
-            </div>
-          </div>  
-          <div className="space-y-8">
-          {isLoading  ?
-            <div className="flex justify-center ">
-              <ProductCardSkeleton />
-            </div>
-
-            : 
-            <div className="flex justify-center">
-              <CompareCard product={compareCards[1]} />
-            </div>
-
-            }
-          <div>
-              <h4 className="text-xl font-semibold mb-4">Features</h4>
-              {isLoading  ?
-              <Loader />
-              :  <CompareFeatures features={ productsInfo[1]?.features} />}
-            </div>
-          </div>
+              <h3 className="text-2xl font-semibold mb-4 text-center">{`AI Recommendations`}</h3>
+              <div className={`flex flex-col ${5 % 2 !== 0 ? "md:flex-row-reverse" : "md:flex-row"} gap-6`}>
+                <div className="flex-1">
+                  <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                    <Star className="text-yellow-400" fill/>
+                    {AIRecommendations?.product1?.ai_rating}
+                    </h4>
+                  <p className="text-muted-foreground">{AIRecommendations?.product1?.ai_recommendation}</p>
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                   
+                    <Star className="text-yellow-400" fill/>
+                    {AIRecommendations?.product2?.ai_rating}
+                  
+                  </h4>
+                  <p className="text-muted-foreground">{AIRecommendations?.product2?.ai_recommendation}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>} */}
         </div>
       </div>
-      
-    </div>
 
+
+    </section>
+  )
+}
+
+function ProductCard({ product }: { product: Product }) {
+  return (
+    <div className="text-center h-fit flex flex-col items-center">
+      <img
+        src={product?.imageUrl || "/placeholder.svg"}
+        alt={product?.title}
+        width={200}
+        height={200}
+        className="mx-auto mb-4 rounded-full shadow-lg"
+      />
+      <h2 className="text-2xl font-semibold mb-2 w-[300px]">{product?.title}</h2>
+      <p className="text-xl font-bold mb-4">{product?.price}</p>
+      <p className="text-muted-foreground mb-4 w-[200px]">{product?.description}</p>
+      <Button
+      variant={"custom"}
+      >
+        Learn More
+      </Button>
+    </div>
+  )
+}
+
+function FeatureComparisonCard({ feature, isReversed, 
+  product1Title, 
+  product2Title, 
+  product1,
+  product2,
+  feature1,
+  feature2
+}) {
+  return (
+    <Card>
+      <CardContent className="
+      bg-gray-900/40 backdrop-blur-xl rounded-xl border border-gray-800/50 overflow-hidden
+      p-6">
+        <h3 className="text-2xl font-semibold mb-4 text-center">{feature1?.feature}</h3>
+        <div className={`flex flex-col ${isReversed ? "md:flex-row-reverse" : "md:flex-row"} gap-6`}>
+          <div className="flex-1">
+            <h4 className="text-lg font-semibold mb-2">{product1Title}</h4>
+            <p className="text-muted-foreground">{feature1?.details}</p>
+          </div>
+          <div className="flex-1">
+            <h4 className="text-lg font-semibold mb-2">{product2Title}</h4>
+            <p className="text-muted-foreground">{feature2?.details}</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 
