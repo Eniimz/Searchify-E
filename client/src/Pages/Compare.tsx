@@ -1,12 +1,13 @@
 // import Image from "next/image"
 //@ts-nocheck
-import { ArrowRight, Star } from "lucide-react"
+import { ArrowRight, LucideArrowLeft, Star } from "lucide-react"
 import axios from 'axios'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
 import Loader from "@/components/loader"
+import { useNavigate } from "react-router-dom"
 
 interface Product {
   name: string
@@ -68,7 +69,9 @@ const featureComparisons: FeatureComparison[] = [
 
 export default function ModernProductComparison() {
 
-  const { compareProducts } = useSelector(state => state.product)
+  const navigate = useNavigate()
+
+  const { compareProducts, currentPage } = useSelector(state => state.product)
 
   const [compareCards, setCompareCards] = useState([])
   const [product1Features, setProduct1Features] = useState([])
@@ -120,6 +123,11 @@ export default function ModernProductComparison() {
   
   }
   
+
+
+  const handleBack = () => {
+    navigate(`/?page=${currentPage}`)
+  }
     useEffect(() => {
       console.log("The compare products: ", compareProducts)
       getProductCards()
@@ -128,10 +136,18 @@ export default function ModernProductComparison() {
   
     const selectedProducts = [product1, product2]
 
+    
 
 
   return (
     <section className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white">
+
+      <div className="px-6 pt-6">
+        <Button variant="ghost" className="mb-4 text-white font-bold text-lg hover:bg-gray-800/80" onClick={handleBack}>
+            <LucideArrowLeft className="mr-2 h-4 w-4 text-white text-lg font-bold" size={20} />
+            Product Overview
+        </Button>
+      </div>
 
       <div className="container mx-auto px-4 py-12 max-w-4xl">
         <h1 className="text-4xl text-center mb-12

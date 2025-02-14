@@ -7,6 +7,7 @@ import { div, use } from "framer-motion/client";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { ProductOverviewSkeleton } from "../ui/product-overview-skeleton";
+import { useSelector } from "react-redux";
 
 interface ProductSidebarProps {
   product: Product | null
@@ -55,6 +56,9 @@ const productData = {
   export default function ProductSidebar() {
     
     const [product, setProduct] = useState<any>(null)
+    const [isLoading, setIsLoading] = useState(false)
+
+    const { currentPage, recentQuery, previousPage } = useSelector(state => state.product)
 
     const { productTitle } = useParams()
     const [searchParams] = useSearchParams()
@@ -63,18 +67,22 @@ const productData = {
   
       const id = searchParams.get("id") 
 
+      setIsLoading(true)
+
       try{
-        const res = await fetch(`http://localhost:3000/api/products/${productTitle}?id=${id}`)
+        const res = await fetch(`http://localhost:3000/api/products/${encodeURIComponent(productTitle)}?id=${id}`)
   
         const data = await res.json();
   
         console.log("The res received: ", data)
 
         setProduct(data.product)
+        setIsLoading(false)
 
 
         
       }catch(err){
+        setIsLoading(false)
         console.log('Erros occured while fetching product Details: ', err)
       }
   
@@ -82,21 +90,30 @@ const productData = {
 
     useEffect(() => {
 
+      console.log("--FetchDeTIALCARD---")
+
+
+      console.log("the recentQuery: ", recentQuery)
+      console.log("The prev page bool: ", previousPage)
+      console.log("The cuurentPage: ", currentPage)
+
+
+      console.log("--FetchDeTIALCARD ENDD---")
+
      fetchProductDetails()
 
-    }, [])
+    }, [productTitle])
 
 
   return (
     <div className="bg-gradient-to-b from-gray-900 via-gray-900 to-gray-900"> 
-        {product ? 
+        {isLoading ? 
 
+         <ProductOverviewSkeleton />
+          :
           <div>
             <DetailCard product={product}/>
-          </div> :
- 
-          <ProductOverviewSkeleton />
-              
+          </div> 
 
       }
     </div>

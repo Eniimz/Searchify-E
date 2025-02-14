@@ -50,17 +50,17 @@ export const getUserProductPrompt = async (userQuery) => {
   
   console.log('Extracted Data:', result);
 
-  msgs.push({
-    role: "assistant",
-    content: result.advice
-  });
+  // msgs.push({
+  //   role: "assistant",
+  //   content: result.advice
+  // });
 
   return result;    
 
 };
 
 export const getScrapeResults = async (productQuery) => {
-  try {
+  // try {
 
     console.log("The product Query: ", productQuery)
 
@@ -79,10 +79,10 @@ export const getScrapeResults = async (productQuery) => {
 
     return newArray
 
-  } catch (error) {
-    console.error('Error fetching scrape results:', error);
-    throw error; 
-  }
+  // } catch (error) {
+  //   console.error('Error fetching scrape results:', error);
+  //   throw error; 
+  // }
 };
 
 

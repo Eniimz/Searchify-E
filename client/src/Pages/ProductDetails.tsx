@@ -1,5 +1,6 @@
+//@ts-nocheck
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import clsx from "clsx"
 import Loader from "@/components/loader"
 import { Button } from "@/components/ui/button"
@@ -8,6 +9,8 @@ import ProductCard from "@/components/global/Product-card"
 import ProductSidebar from "@/components/Product-Details/ProductSidebar"
 import { Product } from "../lib/types"
 import { div } from "framer-motion/client"
+import { useSelector } from "react-redux"
+
 
 
 const products: Product[] = [
@@ -37,70 +40,44 @@ const products: Product[] = [
 
 export default function ProductDetails() {
 
+    const { products } = useSelector(state => state.product)
+
     const [isCompareMode, setCompareMode] = useState(false)
-    const [selectedProducts, setSelectedProducts] = useState<string[]>([])
+    // const [products, setProducts] = useState([])
+    const [loading, setLoading] = useState(false)
 
     const productsRef = useRef<HTMLDivElement | null>(null)
 
     const flexOrGrid = clsx({
 
-        'flex justify-center': products.length === 0,
+        'flex justify-center': products?.length === 0,
         
-        'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 ': products.length > 0
+        'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 ': products?.length > 0
         
       })  
 
-     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
-     const [loading, setLoading] = useState(false)
+      console.log("The state products: ", products)
 
-
-     const toggleCompareMode = () => {
-        setCompareMode((prevValue) => !prevValue)
-      }
-  
-      const handleSelectedProducts = (id: string) => {
-  
-        setSelectedProducts((prevProducts) => {
-          if(prevProducts.length >= 2){
-            return prevProducts.filter(p_id => p_id !== id) 
-          }else{
-            return [...prevProducts, id]
-          }
-        })
-  
-      }
+      // useEffect(() => {
+      //   setProducts(populateProducts)
+      //   console.log("The state products: ", populateProducts)
+      // }, [])
 
   return (
-    <div className="flex flex-col md:flex-row justify-between h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">
-      <section className="w-[45%]">
+    <div className="flex flex-col-reverse justify-between min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">
+      <section className="w-full">
         {/* <div className="container mx-auto max-w-6xl"> */}
-          <div className="flex justify-between items-center px-16 mb-12 pt-6">
-        
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-100">Featured Products</h2>
-            
-            <Button
-              onClick={toggleCompareMode}
-              className={`${
-                isCompareMode
-                  ? "bg-red-500/30 hover:bg-red-600/30"
-                  : "bg-gradient-to-r from-green-500/30 to-blue-500/30 hover:from-green-600/30 hover:to-blue-600/30"
-              } text-white border border-white/30 sticky`}
-            >
-              {isCompareMode ? "Cancel Compare" : `Compare`} <GitCompareArrows />
-            </Button>
-
+          <div className="flex justify-between items-center px-16 mb-8 pt-6">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-100">Related Products</h2>
           </div>
-          <div className={`flex justify-between p-5`} ref={productsRef} >
+          <div className={`grid grid-cols-3 gap-10 justify-items-center pb-10`} ref={productsRef} >
             {
             loading ? 
 
               <Loader /> :
 
-              (products.map((product, index) => (
+              (products?.slice(0, 6)?.map((product, index) => (
                 <ProductCard key={index} product = {product} index = {index} 
-                isSelected = {selectedProducts.includes(product.id)}
-                isCompareMode = {isCompareMode}
-                setSelectedProducts = {handleSelectedProducts}
                 />
             
 
@@ -110,7 +87,7 @@ export default function ProductDetails() {
           </div>
         {/* </div> */}
       </section>
-      <div className="border-l overflow-auto w-[55%]">
+      <div className="border-l overflow-auto w-full">
         <ProductSidebar  />
       </div>
     </div>

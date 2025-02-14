@@ -3,6 +3,7 @@ import { ProductDetails } from "../../models/productDetails.model.js";
 import { scrapeDetails } from "../../utils/Details-scrape/FireewallScrape.js";
 import { MongoClient } from "mongodb";
 import { v4 as uuidv4 } from 'uuid'
+import { Wishlist } from "../../models/wishlist.model.js";
 
 
 
@@ -14,50 +15,181 @@ export const getProductDetails = async (req, res, next) => {
 
     const { productTitle } = req.params;
     const { id } = req.query
+    try{
 
-    const { link, imageUrl } = await getProductLink(productTitle, id)
+        const detailsFromDB = await fetchProductDetailsDB(productTitle, id)
 
-    let productDetails = await scrapeDetails(link)
+        if(detailsFromDB){
+          res.status(200).json({ product: detailsFromDB })
+          return
+        }
 
-    console.log('Product details: ', productDetails)
+        console.log("details not in db")
 
-    productDetails = {
-        id,
-        imageUrl,
-        ...productDetails
+        const product = await getProductLink(productTitle, id)
+    
+        const { link, imageUrl } = product
+
+        let productDetails = await scrapeDetails(link)
+    
+        console.log('Product details: ', productDetails)
+    
+        productDetails = {
+            productId: id,
+            imageUrl,
+            ...productDetails
+        }
+    
+        res.status(200).json({ product: productDetails })
+    
+        addProductDetailsDB(productDetails)
+    }catch(err){
+        next(err)
     }
-
-    res.status(200).json({ product: productDetails })
-
-    addProductDetailsDB(productDetails)
 
 
 }
 
 export const addToWishlist = async (req, res, next) => {
 
-    // try{
+    const { userId, productId} = req.body
 
-    // }
+    // console.log("userId: ", userId)
+    // console.log("productId: ", productId)
 
-}
+    try {
+      // Find the user's wishlist
+      let wishlist = await Wishlist.findOne({ userId });
+  
+      // If the wishlist doesn't exist, create a new one
+      if (!wishlist) {
+        wishlist = new Wishlist({ userId, products: [] });
+      }
+  
+      // Check if the product is already in the wishlist
+      const productExists = wishlist.products.some(
+        (product) => product.productId === productId
+      );
+  
+      if (!productExists) {
+        // Add the product to the wishlist
+        wishlist.products.push({ productId });
+        await wishlist.save();
+        console.log("added to wishlist")
+        return res.status(200).json({ success: true, message: 'Product added to wishlist' });
+      } else {
+        return res.status(500).json({ success: false, message: 'Product already in wishlist' });
+      }
+     
+    } catch (error) {
+      console.error('Error adding product to wishlist:', error);
+      throw error;
+    }
+  };
+
+  export const removeFromWishlist = async (req, res, next) => {
+    const { userId, productId } = req.body;
+  
+    try {
+      // Find the user's wishlist
+      const wishlist = await Wishlist.findOne({ userId });
+  
+      // If the wishlist doesn't exist, return an error
+      if (!wishlist) {
+        return res.status(404).json({ success: false, message: 'Wishlist not found' });
+      }
+  
+      // Check if the product exists in the wishlist
+      const productIndex = wishlist.products.findIndex(
+        (product) => product.productId === productId
+      );
+  
+      if (productIndex === -1) {
+        // Product not found in the wishlist
+        return res.status(400).json({ success: false, message: 'Product not found in wishlist' });
+      }
+  
+      // Remove the product from the wishlist
+      wishlist.products.splice(productIndex, 1); // Remove 1 element at the found index
+      console.log("Removed from wishlist")
+      await wishlist.save();
+  
+      return res.status(200).json({ success: true, message: 'Product removed from wishlist' });
+    } catch (error) {
+      console.error('Error removing product from wishlist:', error);
+      return res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+  };
+
+  export const checkIfProductInWishlist = async (req, res, next) => {
+    const { userId, productId } = req.body; // Use query parameters
+  
+    try {
+      // Find the user's wishlist
+      const wishlist = await Wishlist.findOne({ userId });
+  
+      if (!wishlist) {
+        return res.status(200).json({ isWishlisted: false });
+      }
+  
+      // Check if the product is in the wishlist
+      const isWishlisted = wishlist.products.some(
+        (product) => product.productId === productId
+      );
+  
+      return res.status(200).json({ isWishlisted });
+    } catch (error) {
+      console.error('Error checking wishlist:', error);
+      return res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+  };
+
+export const getWishlistItems = async (req, res, next) => {
+
+    const { userId } = req.query
+
+    try{
+
+      const wishlist = await Wishlist.findOne({ userId })
+
+      if(!wishlist){
+        return res.status(500).json({message: "Not foun wishlist", success: false})
+      }
+
+      console.log("unfiltered: ", wishlist.products)
+
+      const productIds = wishlist.products.map(product => product.productId);
+
+      console.log("productIds: ", productIds)
+
+      const products = await ProductDetails.find({ productId : { $in: productIds } });
+
+      console.log("The products filtered: ", products)
+
+      return res.status(200).json({products})
+
+    }catch(err){
+      res.status(500).json({message: err.message})
+    }
+
+  }
 
 const addProductDetailsDB  = async (productDetails) => {
     
 
-    try{
+    // try{
         const doc = await ProductDetails.insertOne(productDetails)
 
         console.log("The Product Detials inserted")
-    }catch(err){
-        console.log("Error occured while saving to db: ", err)
-    }
+    // }catch(err){
+        // console.log("Error occured while saving to db: ", err)
+    // }
 
 }
 
 const getProductLink = async (productTitle, productId) => {
 
-    try{
+    // try{
         const product = await Product.findOne({
             $or: [
               { id: productId }, // Try to match by ID
@@ -71,10 +203,29 @@ const getProductLink = async (productTitle, productId) => {
 
           return product
 
-    }catch(err){
-        console.log(err)
-    }
+    // }catch(err){
+        // console.log(err)
+    // }
 
 }
 
 
+const fetchProductDetailsDB = async (title, id) => {
+
+  if(!title || !id) return
+
+  try{
+    const product = await ProductDetails.findOne({
+      $or: [
+        {productId: id},
+        {ProductTitle: title}
+      ]
+    })
+
+    return product
+
+  }catch(err){
+    console.log(err)
+  }
+
+}

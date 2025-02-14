@@ -6,6 +6,8 @@ import { Checkbox } from '../ui/checkbox'
 import { Product } from '@/lib/types'
 import { ArrowUpRightFromSquare } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
+import { populatePreviousPage } from '@/redux/productSlice'
 
 type productCardProps = {
 
@@ -23,7 +25,7 @@ const ProductCard: React.FC<productCardProps> = ({ product, index, isCompareMode
   
    
   const navigate = useNavigate()
-
+  const dispatch = useDispatch()
   // const buttonClick = (url: string) => {
   
   //     console.log("CLICKCKEDDE")
@@ -36,9 +38,10 @@ const ProductCard: React.FC<productCardProps> = ({ product, index, isCompareMode
     
   }
 
-  const handleRouteToDetails = (productId: string) => {
+  const handleRouteToDetails = (productId: string, productTitle: string) => {
 
-    navigate(`/products/${productId}`)
+    dispatch(populatePreviousPage(true))
+    navigate(`/products/${encodeURIComponent(productTitle)}?id=${productId}`)
 
   }
 
@@ -107,15 +110,15 @@ const ProductCard: React.FC<productCardProps> = ({ product, index, isCompareMode
               <p className="text-gray-400 text-sm mb-4 line-clamp-2 h-10">{product.description ? product.description : "N/A" }</p>
               <div className="flex justify-between items-center mt-auto">
                 <span className="text-lg font-bold text-green-400 ">{product.price}</span>
-                <Link to={`/products/${product.title}?id=${product.id}`} className='z-10'>
+                {/* <Link to={`/products/${encodeURIComponent(product.title)}?id=${product.id}`} className='z-10'> */}
                   <Button 
-                  // onClick={() => handleRouteToDetails(product.id)}
+                  onClick={() => handleRouteToDetails(product.id, product.title)}
                   className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 
-                  text-white ">
+                  text-white z-10">
                     <ArrowUpRightFromSquare /> More Details
                   </Button>
                 
-                </Link>
+                {/* </Link> */}
 
               </div>
             </div>

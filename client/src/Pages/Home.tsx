@@ -1,3 +1,4 @@
+//@ts-nocheck
 
 import { useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
@@ -6,12 +7,14 @@ import { Input } from "@/components/ui/input"
 import Loader from "@/components/loader";
 import clsx from "clsx"
 import ProductCard from "@/components/global/Product-card"
-import { ArrowUpRightFromCircle, ArrowUpRightFromSquare, CornerRightUp, GitCompareArrows } from "lucide-react";
+import { ArrowUpRightFromCircle, ArrowUpRightFromSquare, Backpack, BaggageClaim, CornerRightUp, GitCompareArrows, LucideShoppingBag, ShoppingBag, ShoppingBasket, UserIcon } from "lucide-react";
 import {Product} from "../lib/types"
 import PaginationControls from "@/components/global/Pagination-controls";
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { useDispatch } from "react-redux";
-import { selectedCompareProducts } from "@/redux/productSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { populateProducts, selectedCompareProducts, populateRecentQuery, populatePreviousPage, populateCurrentPage } from "@/redux/productSlice";
+import axios from "axios";
+import { div } from "framer-motion/client";
 
 
 
@@ -29,28 +32,29 @@ export default function Home() {
 
   const navigate = useNavigate()
   const dispatch = useDispatch()
-
   const [ searchParams ] = useSearchParams()
 
   const page = Number(searchParams.get('page')) || 1
 
-  const [products, setProducts] = useState<Product[] | []>([])
+  const { products: persistedProducts, currentPage, recentQuery, previousPage } = useSelector(state => state.product)
+  const { user, fullname } = useSelector(state => state.user)
+
+  
+
+  const [products, setProducts] = useState([])
+  const [selectedProducts, setSelectedProducts] = useState<selectedProduct[]>([])
 
   const [input, setInput] = useState("")
-  const [searchQuery, setSearchQuery] = useState("")
-
   const [loading, setLoading] = useState(false)
-
   const [isCompareMode, setCompareMode] = useState(false)
-  const [selectedProducts, setSelectedProducts] = useState<selectedProduct[]>([])
 
   const productsRef = useRef<HTMLDivElement | null>(null)
 
   const flexOrGrid = clsx({
 
-    'flex justify-center': products.length === 0,
+    'flex justify-center': products?.length === 0,
     
-    'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6': products.length > 0
+    'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6': products?.length > 0
     
     })
 
@@ -58,7 +62,7 @@ export default function Home() {
 
       if(!inputQuery || inputQuery === '') return
 
-      setSearchQuery(inputQuery)
+      dispatch(populateRecentQuery(inputQuery))
       const prompt: prompt = {
         prompt: inputQuery
       }
@@ -67,7 +71,7 @@ export default function Home() {
 
       try{
   
-        const res = await fetch(`http://localhost:3000/api/prompt/?page=${page}`, {
+        const res = await fetch(`http://localhost:3000/api/prompt?page=${page}`, {
           method: 'POST',
           headers: {'Content-Type' : 'application/json'},
           body: JSON.stringify(prompt)
@@ -84,6 +88,7 @@ export default function Home() {
         if(data){
           console.log("The data in res: ", data.allProducts)
           setProducts(data.allProducts) 
+          dispatch(populateProducts(data.allProducts))
           setLoading(false)
         }else{
           console.log("No data received")
@@ -91,7 +96,6 @@ export default function Home() {
   
         
       }catch(err){
-        // console.log(err.)
         setLoading(false)
       }
       
@@ -112,6 +116,7 @@ export default function Home() {
       }
 
     }
+
 
     const handleSelectedProducts = (id: string, title: string) => {
       setSelectedProducts((prevProducts) => {
@@ -135,12 +140,44 @@ export default function Home() {
       });
     };
 
+
+
     const removeSelected = ([]) => {
       
       setSelectedProducts([])
       setCompareMode(false)
 
     }
+
+
+
+    const handleNavigateCompare = () => {
+
+      dispatch(populatePreviousPage(true))
+      dispatch(selectedCompareProducts(selectedProducts))
+
+      navigate('/compare')
+    }
+
+
+
+    const handleRegister = async () => {
+      
+      try{
+        const res = await axios.post("http://localhost:3000/api/login", {
+          email: "newemail@gmail.com",
+          password: "ahmed213ss",
+        })
+
+        console.log("The res of login: ", res.data)
+
+
+      }catch(err){
+        console.log("ERROR while login: ", err)
+      }
+
+    }
+
 
     useEffect(() => {
           if (productsRef.current) {
@@ -151,29 +188,57 @@ export default function Home() {
 
     useEffect(() => {
 
-      if(!searchQuery) return
+      console.log("----The urll check-----")
+      console.log("The search Query: ", recentQuery)
+      console.log("The page: ", page)
+      console.log("The current page: ", currentPage)
+      console.log("previous Page bool: ", previousPage) 
+      console.log("----The urll check END-----")
 
-      const fetchProducts = async () => {
-        await handlePromptAndFetch(searchQuery)
+      if(previousPage){
+        setProducts(persistedProducts)
+        dispatch(populatePreviousPage(false))
       }
-      
-      fetchProducts()
+      else{
+        const fetchProducts = async () => {
+          await handlePromptAndFetch(recentQuery)
+        }
+        
+        fetchProducts()
+      }
+
+      dispatch(populateCurrentPage(page))
 
     }, [page])
 
 
-    const handleNavigateCompare = () => {
-
-      dispatch(selectedCompareProducts(selectedProducts))
-
-      navigate('/compare')
-    }
-
+    
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">
       {/* Hero Section */}
+
+    
+
       <section className="relative px-4 pt-20 pb-32 overflow-hidden">
+        
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:14px_24px]" />
+        {user ?
+        <div className="absolute right-0 top-7">
+          <div className="rounded-md  w-fit p-1">
+            <div className="flex flex-col items-center bg-slate-500 rounded-full p-1.5">
+              <UserIcon className="text-white  "/>
+              {/* <small className="text-white">{ `Logged in as ${fullname}`  }</small> */}
+            </div>
+        </div>
+            <LucideShoppingBag 
+            onClick={() => navigate('/wishlist')}
+            className="text-white cursor-pointer absolute top-3 right-14" />
+        </div>
+        : 
+        <Button className="absolute right-5 top-8 " >
+          Sign up
+        </Button>
+        }
         <div className="relative container mx-auto max-w-6xl">
           <motion.h1
             className="text-center text-4xl md:text-6xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 text-transparent bg-clip-text pb-4"

@@ -29,13 +29,25 @@ export const getPromptAndFetch = async (req, res, next) => {
 
     console.log("Gettting the requested product from user query...: ", prompt)
 
-    const returnedResult = await getUserProductPrompt(prompt) //geting query from prompt
-    const { product } = returnedResult
+    try{
 
-
-    if(!product) return
-
+        const returnedResult = await getUserProductPrompt(prompt) //geting query from prompt
+        const { product } = returnedResult
+        let maxPrice = null
+        if(returnedResult.maxPrice){
+            maxPrice = returnedResult.maxPrice
+        }
+    
+        if(!product) return
+    
         const query = product
+
+        const matchedProducts = await fetchIfExistsDB(query)
+        
+        if(matchedProducts){
+            res.status(200).json({allProducts})
+            return
+        }
 
         const cacheKey = `${query}-${store}-${page}`
 
@@ -49,20 +61,17 @@ export const getPromptAndFetch = async (req, res, next) => {
 
         if(cachedData){ 
 
-             res.json({allProducts: cachedData, advice: null})
-             useAmazon = !useAmazon
-             const newPageToFetch = Number(page) + 1;
+                res.json({allProducts: cachedData, advice: null})
+                useAmazon = !useAmazon
+                const newPageToFetch = Number(page) + 1;
             
-             if(newPageToFetch > pageLimit) return //  if this new page > 3 
+                if(newPageToFetch > pageLimit) return //  if this new page > 3 
 
-             preFetchNextPage(query, Number(page) + 1, startIndex + limit, endIndex + limit)
-             return
+                preFetchNextPage(query, Number(page) + 1, startIndex + limit, endIndex + limit)
+                return
         }
 
-        console.log("Now scraping as product was found..... ")       
-        // allProducts = await getScrapeResults(product) //if product is extracted 
-
-        
+        console.log("Now scraping as product was found..... ")                    
 
         console.log(`Scraping from ${store}: for page ${page}`)
 
@@ -74,7 +83,6 @@ export const getPromptAndFetch = async (req, res, next) => {
         
         allProducts = allProducts.slice(0, 9).map((product) => {
             return {
-                // id: store === 'Amazon' ?  extractAmazonId(product.link) : extractEbayId(product.link),
                 id: uuidv4(),
                 query,
                 ...product
@@ -87,37 +95,27 @@ export const getPromptAndFetch = async (req, res, next) => {
         useAmazon = !useAmazon  //toggeling the store
 
     const { advice } = returnedResult; 
+        
+        console.log("Advice: ", advice)
     
-    console.log("Advice: ", advice)
-
-    res.status(200).json({allProducts, advice})
-
-    console.log("----SAVING TO DB----")
-    await saveToDatabase(allProducts)
-
-
-    logCache()
-
-    preFetchNextPage(query, Number(page) + 1, startIndex + limit, endIndex + limit)
-
-    // allProducts?.slice(0, 9).forEach(async (product) => {
-    //     await scrapeDetails(product.li // })
+        res.status(200).json({allProducts, advice})
+    
+        console.log("----SAVING TO DB----")
+        await saveToDatabase(allProducts)
+    
+    
+        logCache()
+    
+        preFetchNextPage(query, Number(page) + 1, startIndex + limit, endIndex + limit)
+    }catch(err){
+        next(err)
+    }
 
 }
 
-function extractEbayId(url) {
-    const regex = /\/itm\/(\d+)/;
-    const match = url.match(regex);
-    return match ? match[1] : null;
-  }
 
-  function extractAmazonId(url) {
-    const regex = /\/dp\/([A-Z0-9]{10})/;  // Regex for extracting ASIN
-    const match = url.match(regex);
-    return match ? match[1] : null;  // Return ASIN if found
-  }
   
-const preFetchNextPage = (query, nextPage, startIndex, endIndex) => {
+const preFetchNextPage = async (query, nextPage, startIndex, endIndex) => {
 
     if(nextPage > pageLimit) return
 
@@ -142,7 +140,6 @@ const preFetchNextPage = (query, nextPage, startIndex, endIndex) => {
 
     console.log(`PreFetching from ${store} for page ${nextPage}`)
 
-    // const nextPageDataPromise = scrapeAmazon(query)
 
     const nextPageDataPromise = useAmazon
     ? scrapeAmazon(query,  nextPage)
@@ -153,7 +150,6 @@ const preFetchNextPage = (query, nextPage, startIndex, endIndex) => {
 
         nextPageData = nextPageData.slice(0, 9).map((product) => { //the prefetched products
             return {
-                // id: store === 'Amazon' ? extractAmazonId(product.link) : extractEbayId(product.link),
                 id: uuidv4(),
                 query,
                 ...product
@@ -179,7 +175,6 @@ const saveToDatabase = async (productData) => {
     try{
         const result = await Product.insertMany(productData)
         console.log(`${result.length} documents inserted`);
-        // console.log('Inserted IDs:', result.);
     }catch(error){
         console.error('Error inserting documents: ', error)
     }
@@ -195,4 +190,15 @@ const logCache = () => {
         console.log(`${key}:`)
     })
     console.log('---Cache keys END---')
+}
+
+const fetchIfExistsDB = async (query) => {
+
+    const queryMatch = await Product.find({ title: query })
+
+    if(queryMatch.length > 7){
+        return queryMatch
+    }
+
+
 }

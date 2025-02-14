@@ -1,7 +1,10 @@
 import { smartScraper } from 'scrapegraph-js';
 import { z } from "zod"
- 
-const apiKey = "sgai-8ce50a6c-e755-40a8-ae6f-127fa09c564b";
+import dotenv from 'dotenv'
+
+dotenv.config()
+
+const apiKey = process.env.S_API_KEY;
 
 export const schema = z.object({
   title: z.string().describe('The title of the product'),
@@ -22,7 +25,6 @@ export const scrapeAmazon = async (queryParams, page) => {
   const url = `https://amazon.com/s?k=${queryParams}&page=${page}`;
   
 
-  try {
     const response = await smartScraper(apiKey, url, prompt, schema);
     console.log("----- amazon products----")
     // console.log(response.result.products)
@@ -32,10 +34,13 @@ export const scrapeAmazon = async (queryParams, page) => {
       return [ ]
     }
 
+
+    if(response.result.products){
+      response.result.products = response.result.products.filter((product) => product.link && product.link?.startsWith("https"))
+    }
+
     return response.result.products ? response.result.products :  [response.result]
-  } catch (error) {
-    console.error('Error:', error);
-  }
+
 };
 
 export const scrapeEbay = async (queryParams, page) => {
@@ -44,7 +49,6 @@ export const scrapeEbay = async (queryParams, page) => {
 
   const url = `https://www.ebay.com/sch/i.html?_nkw=${queryParams}&_pgn=${page}`
 
-  try {
     const response = await smartScraper(apiKey, url, prompt, schema);
 
     console.log("----- Ebay products----")
@@ -55,11 +59,13 @@ export const scrapeEbay = async (queryParams, page) => {
       return [ ]
     }
 
+    if(response.result.products){
+      response.result.products = response.result.products.filter((product) => product.link && product.link?.startsWith("https"))
+    }
+
     return response.result.products ? response.result.products :  [response.result] // if more than one product, if not...return array
 
-  } catch (error) {
-    console.error('Error:', error);
-  }
+
    
 }
 

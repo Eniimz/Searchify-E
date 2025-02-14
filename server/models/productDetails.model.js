@@ -10,7 +10,7 @@ const ProductSchema = new mongoose.Schema({
     type: String
   },
   ProductTitle: { type: String },
-
+  imageUrl: String,
   price: {
     listPrice: { type: mongoose.Schema.Types.Mixed }, // Can be string or number
     currentPrice: { type: mongoose.Schema.Types.Mixed },

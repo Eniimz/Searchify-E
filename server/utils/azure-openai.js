@@ -2,8 +2,8 @@ import { AzureOpenAI } from 'openai'
 import dotenv from 'dotenv'
         
 dotenv.config({
-    path: "../.env"
-});  
+    path: `${process.cwd()}/.env`
+}) 
 
 const endpoint = process.env.AZURE_OPENAI_ENDPOINT;  
 const apiKey = process.env.AZURE_OPENAI_API_KEY;  
