@@ -1,8 +1,57 @@
+//@ts-nocheck
+
 import WishlistHeader from "../components/wishlist/wishlist-header"
 import WishlistGrid from "../components/wishlist/wishlist-grid"
 import { SearchBar } from "../components/wishlist/search-bar"
+import { useRef, useState } from "react"
+import axios from "axios"
+import { useSelector } from "react-redux"
+import { title } from "process"
 
 export default function WishlistPage() {
+
+  const [searchTerm, setSearchTerm] = useState("")
+  const [searchResults, setSearchResults] = useState([])
+
+  const timerRef = useRef<ReturnType<typeof setTimeout>>()
+  const { user } = useSelector(state => state.user)
+
+
+  const handleSearch = async (searchTerm) => {
+
+    if(timerRef){
+      clearTimeout(timerRef.current)
+    } 
+
+    timerRef.current = setTimeout(async () => {
+      const results = await getSearchResults(searchTerm)
+
+    }, 450)
+
+  }
+
+
+  const getSearchResults = async (searchTerm) => {
+
+    try{
+
+      const res = await axios.post("http://localhost:3000/api/wishlist/getSearch", {
+        userId: user,
+        searchTerm
+      })
+
+      const data = res.data
+
+      setSearchResults(data.matchedProducts)
+
+      console.log("The search results: ", data)
+
+    }catch(err){
+      console.error("Error occured in getting search results: ", err)
+    }
+
+  }
+
   return (
     <div className="min-h-screen  bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden">
       {/* Cyber grid background */}
@@ -22,11 +71,11 @@ export default function WishlistPage() {
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:14px_24px]" />
 
             <WishlistHeader />
-            <SearchBar />
+            <SearchBar onSearch = { handleSearch } />
           </div>
 
         <div className="container mx-auto px-4 py-4 ">
-          <WishlistGrid />
+          <WishlistGrid searchResults = { searchResults } />
         </div>
       </div>
     </div>

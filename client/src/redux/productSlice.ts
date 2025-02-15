@@ -20,7 +20,6 @@ const productSlice = createSlice({
         populateProducts: (state, action) => { //for related products
             state.products = action.payload
         },
-
         selectedCompareProducts: (state, action) => { //for compare products in compare page
             state.compareProducts = action.payload
         },
@@ -29,7 +28,7 @@ const productSlice = createSlice({
         },
         populateRecentQuery: (state, action) => { 
             state.recentQuery = action.payload
-        },
+        },  
         populatePreviousPage: (state, acion) => {
             state.previousPage = acion.payload
         }

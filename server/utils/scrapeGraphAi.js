@@ -16,34 +16,47 @@ export const schema = z.object({
 
 })
 
-const prompt = `Only Extract 8 products data and return the result in json format with fields, 
-title, price, rating, description, imageUrl, link.If any data is not found, just write "N/A" for that field.`
-
+let prompt = `Only Extract 8 products data and return the result in json format with fields, 
+title, price, rating, description, imageUrl, link. if description is not scraped, add your own
+according to the product title. If any other data is not found write "N/A" for that field`
 
 export const scrapeAmazon = async (queryParams, page) => {
 
-  const url = `https://amazon.com/s?k=${queryParams}&page=${page}`;
-  
 
-    const response = await smartScraper(apiKey, url, prompt, schema);
-    console.log("----- amazon products----")
-    // console.log(response.result.products)
-    console.log("scrapped amazon succesfully");
+  // prompt = `Only Extract 8 products data and return the result in json format with fields, 
+  // title, price, rating, description, imageUrl, link. if any image is not found.
+  // take any one image from here but dont use the same image twice: 
+  // ${images}
+  // if any other data is not found write "N/A" for that field`
 
-    if(response === undefined ||response ===  null){
-      return [ ]
-    }
+const url = `https://amazon.com/s?k=${queryParams}&page=${page}`;
 
 
-    if(response.result.products){
-      response.result.products = response.result.products.filter((product) => product.link && product.link?.startsWith("https"))
-    }
+  const response = await smartScraper(apiKey, url, prompt, schema);
+  console.log("----- amazon products----")
+  // console.log(response.result.products)
+  console.log("scrapped amazon succesfully");
 
-    return response.result.products ? response.result.products :  [response.result]
+  if(response === undefined ||response ===  null){
+    return [ ]
+  }
+
+
+  if(response.result.products){
+    response.result.products = response.result.products.filter((product) => product.link && product.link?.startsWith("https"))
+  }
+
+  return response.result.products ? response.result.products :  [response.result]
 
 };
 
-export const scrapeEbay = async (queryParams, page) => {
+export const scrapeEbay = async (queryParams, page, images) => {
+  
+  // prompt = `Only Extract 8 products data and return the result in json format with fields, 
+  // title, price, rating, description, imageUrl, link. if any image is not found.
+  // take any one image randomly from here, dont use the same image twice: 
+  // ${images}
+  // if any other data is not found write "N/A" for that field`
 
   console.log("The passed params: ", queryParams)
 

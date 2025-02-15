@@ -1,9 +1,9 @@
-"use client"
+//@ts-nocheck
 
 import { Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 
-export function SearchBar() {
+export function SearchBar({ onSearch }) {
   return (
     <div className="max-w-2xl mx-auto mb-12 ">
       <div className="relative">
@@ -13,6 +13,7 @@ export function SearchBar() {
             <div className="flex items-center">
               <Search className="h-5 w-5 text-gray-400 ml-3" />
               <Input
+                onChange={(e) => onSearch(e.target.value)}
                 type="text"
                 placeholder="Search your wishlist..."
                 className="flex-1 bg-transparent border-none text-gray-100 placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0"

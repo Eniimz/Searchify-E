@@ -5,34 +5,48 @@ import userRoutes from "./routes/user.route.js"
 import cors from 'cors'
 import dotenv from 'dotenv'
 import mongoose from 'mongoose'
+import http from 'http'
+
+
 import { ProductDetails } from './models/productDetails.model.js'
+import { getSocketIO, initializeSocket } from './socker-io.js'
+
 dotenv.config()
 
-
-mongoose.connect(process.env.MONGO_URI)
-.then(async () => {
-    console.log("connected to MONGO")
-    await removeDuplicatesFromOriginal()
-    
-
-})
-.catch((err) => console.log("Coudlnt connect to DB: ", err))
 
 
 // console.log("THE MONGO URI: ", process.env.MONGO_URI)
 
 const app = express()
+const httpServer = http.createServer(app)
+
 
 
 app.use(cors())
 
 app.use(express.json());
 
+initializeSocket(httpServer)
+
+mongoose.connect(process.env.MONGO_URI)
+.then(async () => {
+    console.log("connected to MONGO")
+    // await removeDuplicatesFromOriginal()
+    // const io = getSocketIO()
+
+    // io.emit('check', { message: 'working'})
+    
+
+})
+.catch((err) => console.log("Coudlnt connect to DB: ", err))
+
+
+
 app.use('/api', userRoutes)
-
 app.use('/api', promptRoutes)
-
 app.use('/api', productRoutes)
+
+
 
 app.use((err, req, res, next) => {
 
@@ -49,9 +63,12 @@ app.use((err, req, res, next) => {
     })
 })
 
-const server = app.listen(3000, () => {
+const server = httpServer.listen(3000, () => {
     console.log("Server is running on port 3000")
 })
+
+
+
 
 async function removeDuplicates() {
     try {

@@ -52,7 +52,7 @@ export const getProductDetails = async (req, res, next) => {
 
 export const addToWishlist = async (req, res, next) => {
 
-    const { userId, productId} = req.body
+    const { userId, productId, title} = req.body
 
     // console.log("userId: ", userId)
     // console.log("productId: ", productId)
@@ -73,7 +73,8 @@ export const addToWishlist = async (req, res, next) => {
   
       if (!productExists) {
         // Add the product to the wishlist
-        wishlist.products.push({ productId });
+        wishlist.products.push({ productId, title });
+
         await wishlist.save();
         console.log("added to wishlist")
         return res.status(200).json({ success: true, message: 'Product added to wishlist' });
@@ -87,7 +88,10 @@ export const addToWishlist = async (req, res, next) => {
     }
   };
 
+
+
   export const removeFromWishlist = async (req, res, next) => {
+
     const { userId, productId } = req.body;
   
     try {
@@ -153,7 +157,8 @@ export const getWishlistItems = async (req, res, next) => {
       const wishlist = await Wishlist.findOne({ userId })
 
       if(!wishlist){
-        return res.status(500).json({message: "Not foun wishlist", success: false})
+        return
+        // return res.status(500).json({message: "Not found wishlist", success: false})
       }
 
       console.log("unfiltered: ", wishlist.products)
@@ -228,4 +233,43 @@ const fetchProductDetailsDB = async (title, id) => {
     console.log(err)
   }
 
+}
+
+export const getSearchResults = async (req, res, next) => {
+
+  const { userId, searchTerm } = req.body
+
+  try{
+
+    const wishlist = await Wishlist.findOne({ userId })
+
+    if(!wishlist){
+      return 
+    }
+
+    const products = wishlist.products
+
+    const matchedProducts = products.filter(
+      (product) => new RegExp(searchTerm, 'i').test(product.title)
+    ).map(product => ({
+      productId: product.productId,
+      title: product.title
+    }))
+
+    const matchedIds = matchedProducts.map(product => product.productId)
+
+    const Mquery = {
+        productId : { $in: matchedIds } 
+    }
+
+    const results = await ProductDetails.find(Mquery)
+
+    res.status(200).json({matchedProducts: results})
+
+  }catch(err){
+    console.log('Error in search results: ', err)
+    res.status(500).json({ message: err.message })
+  }
+
+  
 }

@@ -6,6 +6,8 @@ import { scrapeDetails } from "../utils/Details-scrape/FireewallScrape.js"
 import { scrapeAmazon, scrapeEbay } from "../utils/scrapeGraphAi.js"
 import NodeCache from 'node-cache'
 import { Product } from "../models/product.model.js"
+import { getSocketIO } from "../socker-io.js"
+import { fetchImages, updateProductImageUrls } from "../utils/unsplash/unsplash.js"
 
 const cache = new NodeCache({ stdTTL: 600 });
 
@@ -16,14 +18,35 @@ const pageLimit = 3
 export const getPromptAndFetch = async (req, res, next) => {
 
     const { prompt } = req.body
-    const { page = 1 } = req.query
+    let { page = 1 } = req.query
     const limit = 10
+
+    page = Number(page)
 
     if(page > pageLimit) return  // > 3 but prefetch can occur so another check is needed
 
+
+    
+    
     const endIndex = page * limit  // 1 * 10
     const startIndex = endIndex - limit // 10 - 10 
-    const store = useAmazon ? 'Amazon' : 'Ebay'
+    let store = useAmazon ? 'Amazon' : 'Ebay'
+    
+    console.log("THE PAGE before:", page)
+    console.log("THe type of page: " ,typeof page)
+    console.log("The store before: ", store)
+
+    if(page === 1 && store === 'Ebay'){
+        console.log("Changing the store")
+        
+        useAmazon = true // for reseting the cache cycle
+        store = 'Amazon'
+    }
+
+    if(page === 3 && store === 'Ebay') {//especially for when at page 3 user refreshes the page
+        useAmazon = true
+        store = 'Amazon'
+    }
 
     let allProducts = null;
 
@@ -51,7 +74,7 @@ export const getPromptAndFetch = async (req, res, next) => {
 
         const cacheKey = `${query}-${store}-${page}`
 
-
+        console.log("The cache key")
         console.log("THE PAGE:", page)
         console.log("The store: ", store)
 
@@ -62,6 +85,9 @@ export const getPromptAndFetch = async (req, res, next) => {
         if(cachedData){ 
 
                 res.json({allProducts: cachedData, advice: null})
+                
+                if(page === 3 && store === 'Amazon') return    //especially for when at page 3 user refreshes the page
+
                 useAmazon = !useAmazon
                 const newPageToFetch = Number(page) + 1;
             
@@ -75,12 +101,18 @@ export const getPromptAndFetch = async (req, res, next) => {
 
         console.log(`Scraping from ${store}: for page ${page}`)
 
+        
 
         allProducts = useAmazon 
         ? await scrapeAmazon(product, page)
         : await scrapeEbay(product, page)
 
+        const images = await fetchImages(product)
+
+        allProducts = await updateProductImageUrls(allProducts, images)
         
+        console.log("allProducts: ", allProducts)
+
         allProducts = allProducts.slice(0, 9).map((product) => {
             return {
                 id: uuidv4(),
@@ -127,7 +159,12 @@ const preFetchNextPage = async (query, nextPage, startIndex, endIndex) => {
 
     if(cache.get(cacheKey) && nextPage <= pageLimit){
         const cachedData = cache.get(cacheKey)
-        useAmazon - !useAmazon
+
+        if(nextPage === 3) return    //this is important when user comes at page 3, goes to page 2, to ensure previous page (2) to be fetched is
+                                    //to be from ebay, from cache
+                                                    //cache key to maintain
+                                                    //amazon-page-1 => ebay-page-2 => amazon-page-3 and repeat
+        useAmazon = !useAmazon
         const newPageToFetch = nextPage + 1
 
         if(newPageToFetch > pageLimit) return
@@ -137,9 +174,7 @@ const preFetchNextPage = async (query, nextPage, startIndex, endIndex) => {
     }
 
 
-
     console.log(`PreFetching from ${store} for page ${nextPage}`)
-
 
     const nextPageDataPromise = useAmazon
     ? scrapeAmazon(query,  nextPage)
@@ -147,6 +182,10 @@ const preFetchNextPage = async (query, nextPage, startIndex, endIndex) => {
 
     nextPageDataPromise.then(async (nextPageData) => {
         console.log("caching prefetch...")
+
+        const images = await fetchImages(query)
+
+        nextPageData = await updateProductImageUrls(nextPageData, images)
 
         nextPageData = nextPageData.slice(0, 9).map((product) => { //the prefetched products
             return {
@@ -156,11 +195,11 @@ const preFetchNextPage = async (query, nextPage, startIndex, endIndex) => {
             }
         })
         cache.set(cacheKey, nextPageData)
-        console.log("prefetch cached??????: ", cache.get(cacheKey))
+        // console.log("prefetch cached??????: ", cache.get(cacheKey))
 
         console.log("---Saving prefetched data to db----")
 
-
+        onPrefetchComplete(nextPage)
 
         await saveToDatabase(nextPageData)
         logCache()
@@ -169,6 +208,14 @@ const preFetchNextPage = async (query, nextPage, startIndex, endIndex) => {
 
 }
 
+const onPrefetchComplete = (nextPage) => {
+
+    const io = getSocketIO()
+
+    io.emit("prefetchingCompleted", { message: `The next page ${nextPage} has been prefetched`})
+
+
+}
 
 const saveToDatabase = async (productData) => {
 

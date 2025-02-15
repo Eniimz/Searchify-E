@@ -9,7 +9,7 @@ import Loader from "../loader";
 import { useNavigate } from "react-router-dom";
 import { LoaderCircle } from "lucide-react";
 import { useDispatch } from "react-redux";
-import { setFullname } from "@/redux/userSlice";
+import { setFullname, setUser } from "@/redux/userSlice";
 
 
 export function SignUpForm({ setError }) {

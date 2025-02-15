@@ -19,7 +19,7 @@ const msgs = [
     the product brand (if mentioned),its specs (if mentioned) and the maximum price they are willing to spend.
     make sure the product is plural, if its not in plural make it with the brand. If the query doesn't mention 
     a maximum price,any product, set it to null. Output the result as a JSON object according to this schema: ${JSON.stringify(schema)}. 
-    Do not write anything else, as the result you provide will be later parsed using JSON.parse().
+    The text returned by you should always be in lowercase alphabets.
   `
   },
 

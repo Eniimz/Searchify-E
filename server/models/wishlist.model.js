@@ -12,6 +12,10 @@ const wishlistSchema = new mongoose.Schema({
             type: String, // Use String for UUID
             required: true,
           },
+          title: {
+            type: String,
+            required: true
+          }
         }
       ],
     createdAt: { 

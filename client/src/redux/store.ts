@@ -3,13 +3,15 @@
 import { combineReducers, configureStore } from '@reduxjs/toolkit'
 import productReducer from "./productSlice"
 import userReducer from "./userSlice"
-
+import prefetchReducer from "./prefetchSlice"
 import { persistStore, persistReducer } from 'redux-persist'
 import storage from 'redux-persist/lib/storage'
+import socketMiddleware from './middlewares/socket-middleware'
 
 const rootReducer = combineReducers({
     product: productReducer,
-    user: userReducer
+    user: userReducer,
+    prefetch: prefetchReducer
 })
 
 const presistConfig = {
@@ -23,7 +25,7 @@ const persistedReducer = persistReducer(presistConfig, rootReducer)
 export const store = configureStore({
     reducer:  persistedReducer,
     middleware: (getDefaultMiddleware) => 
-        getDefaultMiddleware({serializableCheck: false}) 
+        getDefaultMiddleware({serializableCheck: false}).concat(socketMiddleware) 
 })
 
 

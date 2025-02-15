@@ -4,10 +4,11 @@ import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import WishlistItem from "./wishlist-item"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight, SlidersHorizontal } from "lucide-react"
+import { ChevronLeft, ChevronRight, LucideArrowLeft, SlidersHorizontal } from "lucide-react"
 import axios from "axios"
 import { useSelector } from "react-redux"
 import Loader from "../loader"
+import { useNavigate } from "react-router-dom"
 
 // const items = [
 //   {
@@ -45,30 +46,43 @@ import Loader from "../loader"
 //   },
 // ]
 
-export default function WishlistGrid() {
+export default function WishlistGrid({ searchResults }) {
+  
+  const navigate = useNavigate()
 
   const { user } = useSelector(state => state.user)
+  const { currentPage } = useSelector(state => state.product)
 
   const [products, setProducts] = useState([])
   const [isLoading, setIsLoading] = useState(false)
 
+  const getWishlistItems = async () => {
+
+    const res = await axios.get(`http://localhost:3000/api/wishlist/fetch?userId=${user}`)
+
+    console.log("The wishlist data: ", res.data)
+
+    const data = res.data
+
+    console.log("feature test: ", data.products[0].productFeatures[0].feature
+
+    )
+
+    setProducts(data.products)
+
+  }
+
+
   useEffect(() => {
     
-    const getWishlistItems = async () => {
-
-      const res = await axios.get(`http://localhost:3000/api/wishlist/fetch?userId=${user}`)
-
-      console.log("The wishlist data: ", res.data)
-
-      const data = res.data
-
-      console.log("feature test: ", data.products[0].productFeatures[0].feature
-
-      )
-
-      setProducts(data.products)
-
+    
+    if(searchResults){
+      setProducts(searchResults)
     }
+        
+  }, [searchResults])
+
+  useEffect(() => {
 
     getWishlistItems()
 
@@ -82,11 +96,23 @@ export default function WishlistGrid() {
     setSelectedItems((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]))
   }
 
+  const handleBack = () => {
+    navigate(`/?page=${currentPage}`)
+  }
+
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
+      
+      <div className="px-6">
+          <Button variant="ghost" className="mb-4 text-white font-bold text-lg hover:bg-gray-800/80" onClick={handleBack}>
+              <LucideArrowLeft className="mr-2 h-4 w-4 text-white text-lg font-bold" size={20} />
+              Product Overview
+          </Button>
+        </div>
         <h2 className="text-2xl font-semibold text-white">Featured Items</h2>
         <div className="flex gap-4">
+        
           <div className="flex gap-2">
             <Button variant="outline" size="icon" className="bg-gray-900/60 border-gray-700">
               <ChevronLeft className="h-4 w-4" />
@@ -96,7 +122,7 @@ export default function WishlistGrid() {
             </Button>
           </div>
           <Button 
-          className={`bg-gradient-to-r from-green-600/30 to-blue-600/30"
+          className={`bg-gradient-to-r from-green-600/30 to-blue-600/30
           text-white border border-white/30`}
           disabled={selectedItems.length === 0}
         >
@@ -114,6 +140,7 @@ export default function WishlistGrid() {
         {products?.map((product, index) => (
           
             <WishlistItem
+              key={product.productId}
               item={product}
               isSelected={selectedItems.includes(product.id)}
               onToggleSelect={() => toggleItemSelection(product.id)}

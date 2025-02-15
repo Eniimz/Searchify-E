@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import Loader from "@/components/loader";
 import clsx from "clsx"
 import ProductCard from "@/components/global/Product-card"
-import { ArrowUpRightFromCircle, ArrowUpRightFromSquare, Backpack, BaggageClaim, CornerRightUp, GitCompareArrows, LucideShoppingBag, ShoppingBag, ShoppingBasket, UserIcon } from "lucide-react";
+import { ArrowUpRightFromCircle, ArrowUpRightFromSquare, Backpack, BaggageClaim, CornerRightUp, GitCompareArrows, LogOut, LucideShoppingBag, ShoppingBag, ShoppingBasket, SlidersHorizontal, UserIcon } from "lucide-react";
 import {Product} from "../lib/types"
 import PaginationControls from "@/components/global/Pagination-controls";
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
@@ -15,6 +15,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { populateProducts, selectedCompareProducts, populateRecentQuery, populatePreviousPage, populateCurrentPage } from "@/redux/productSlice";
 import axios from "axios";
 import { div } from "framer-motion/client";
+import { setUser } from "@/redux/userSlice";
+import { setPrefetchCompleted } from "@/redux/prefetchSlice";
 
 
 
@@ -32,12 +34,13 @@ export default function Home() {
 
   const navigate = useNavigate()
   const dispatch = useDispatch()
-  const [ searchParams ] = useSearchParams()
+  const [ searchParams, setSearchParams ] = useSearchParams()
 
   const page = Number(searchParams.get('page')) || 1
 
   const { products: persistedProducts, currentPage, recentQuery, previousPage } = useSelector(state => state.product)
   const { user, fullname } = useSelector(state => state.user)
+  const { prefetchCompleted } = useSelector(state => state.prefetch)
 
   
 
@@ -58,11 +61,26 @@ export default function Home() {
     
     })
 
+    const handleInput = (e) => {
+      if(page !== 1){
+        setSearchParams({ page: 1 })
+      }
+
+      dispatch(setPrefetchCompleted(true))
+      // if(recentQuery){
+      //   dispatch(populateRecentQuery(null))
+      // }
+
+      setInput(e.target.value)
+    }
+
     const handlePromptAndFetch = async (inputQuery: string) => {
 
       if(!inputQuery || inputQuery === '') return
 
       dispatch(populateRecentQuery(inputQuery))
+      dispatch(setPrefetchCompleted(false))
+
       const prompt: prompt = {
         prompt: inputQuery
       }
@@ -159,25 +177,29 @@ export default function Home() {
       navigate('/compare')
     }
 
-
-
-    const handleRegister = async () => {
-      
-      try{
-        const res = await axios.post("http://localhost:3000/api/login", {
-          email: "newemail@gmail.com",
-          password: "ahmed213ss",
-        })
-
-        console.log("The res of login: ", res.data)
-
-
-      }catch(err){
-        console.log("ERROR while login: ", err)
-      }
-
+    const handleNavigateWishlist = () => {
+      dispatch(populatePreviousPage(true))
+      navigate(`/wishlist`)
     }
 
+
+    const handleLogout = () => {
+      try{
+        const res = axios.get("http://localhost:3000/api/logout")
+
+        const data = res.data
+
+        console.log(data)
+
+        dispatch(setUser(null))
+        dispatch(populateRecentQuery(null))
+        dispatch(populateProducts(null))
+        dispatch(previousPage(false))
+
+      }catch(err){
+        console.log("Error while logging out: ", err)
+      }
+    }
 
     useEffect(() => {
           if (productsRef.current) {
@@ -195,6 +217,8 @@ export default function Home() {
       console.log("previous Page bool: ", previousPage) 
       console.log("----The urll check END-----")
 
+      if(!recentQuery) return
+
       if(previousPage){
         setProducts(persistedProducts)
         dispatch(populatePreviousPage(false))
@@ -209,7 +233,16 @@ export default function Home() {
 
       dispatch(populateCurrentPage(page))
 
+      if(page === 3){
+        dispatch(setPrefetchCompleted(true))
+      }
+
+      if(page > 3){
+        navigate('/Not-found')
+      }
+
     }, [page])
+
 
 
     
@@ -223,19 +256,30 @@ export default function Home() {
         
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:14px_24px]" />
         {user ?
-        <div className="absolute right-0 top-7">
-          <div className="rounded-md  w-fit p-1">
-            <div className="flex flex-col items-center bg-slate-500 rounded-full p-1.5">
+        <div className="absolute left-0 top-7 bg-red-300 w-full">
+
+          <div 
+          onClick={handleLogout}
+          className="bg-slate-700 hover:bg-slate-500 absolute left-4 top-1 p-2 rounded-full cursor-pointer">
+            <LogOut className=" text-white"/>
+          </div>
+
+          <div className="rounded-md w-fit p-1 absolute right-4">
+            <div className="flex flex-col items-center bg-slate-700 rounded-full p-1.5">
               <UserIcon className="text-white  "/>
               {/* <small className="text-white">{ `Logged in as ${fullname}`  }</small> */}
             </div>
-        </div>
+          </div>
+
             <LucideShoppingBag 
-            onClick={() => navigate('/wishlist')}
-            className="text-white cursor-pointer absolute top-3 right-14" />
+            onClick={handleNavigateWishlist}
+            className="text-white cursor-pointer absolute top-3 right-[70px] hover:scale-110 transition-all" />
         </div>
         : 
-        <Button className="absolute right-5 top-8 " >
+        <Button onClick={() => navigate('/sign-up')}
+
+        variant={"secondary"}
+        className="absolute right-5 top-8 bg-slate-700 text-white hover:text-slate-700" >
           Sign up
         </Button>
         }
@@ -273,7 +317,7 @@ export default function Home() {
                   type="text"
                   placeholder="Describe what you want to create..."
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
+                  onChange={(e) => handleInput(e)}
                   className="relative bg-gray-900/50 border-gray-700 text-gray-100 placeholder:text-gray-400 w-full backdrop-blur-sm"
                 />
               </div>
@@ -301,10 +345,11 @@ export default function Home() {
                 className={`${
                   isCompareMode
                     ? "bg-red-500/30 hover:bg-red-600/30"
-                    : "bg-gradient-to-r from-green-500/30 to-blue-500/30 hover:from-green-600/30 hover:to-blue-600/30"
-                } text-white border border-white/30 sticky`}
+                    : `bg-gradient-to-r from-green-600/30 to-blue-600/30
+                      text-white border border-white/30 hover:from-green-600/30 hover:to-blue-600/30`
+                } h-9`}
               >
-                {isCompareMode ? "Cancel Compare" : `Compare`} <GitCompareArrows />
+                {isCompareMode ? "Cancel Compare" : `Compare`} <SlidersHorizontal className="h-4 w-4 mr-2" />
               </Button>
 
               {
@@ -330,9 +375,9 @@ export default function Home() {
 
               <Loader /> :
 
-              (products.map((product, index) => (
+              (products?.map((product, index) => (
                 <ProductCard key={index} product = {product} index = {index} 
-                isSelected = {selectedProducts.some(
+                isSelected = {selectedProducts?.some(
                   (p) => p.id === product.id && p.title === product.title
                 )}
                 isCompareMode = {isCompareMode}
@@ -342,9 +387,9 @@ export default function Home() {
             }
           </div>
 
-            <div className="flex justify-center">
+            {products?.length > 0 && <div className="flex justify-center mt-10">
               <PaginationControls setSelectedProducts = {removeSelected}/>
-            </div>
+            </div>}
 
 
         </div>

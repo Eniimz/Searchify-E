@@ -72,7 +72,8 @@ export function DetailCard({ product }: { product: Product }) {
         headers: { 'Content-Type' : 'application/json' },
         body: JSON.stringify({
           userId: user,
-          productId: product.productId
+          productId: product.productId,
+          title: product.ProductTitle
         })
       })
       console.log("added to wishlist")

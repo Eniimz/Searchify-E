@@ -7,16 +7,20 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { LoginForm } from "@/components/auth/login-form"
 import { SignUpForm } from "@/components/auth/signup-form"
-import { AlertCircle } from "lucide-react"
+import { AlertCircle, HomeIcon } from "lucide-react"
  
 import {
   Alert,
   AlertDescription,
   AlertTitle,
 } from "@/components/ui/alert"
+import { useNavigate } from "react-router-dom"
 
 
 export default function AuthPage() {
+
+  const navigate = useNavigate()
+
   const [isLogin, setIsLogin] = useState(true)
   const [error, setError] = useState(null)
 
@@ -27,8 +31,15 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center 
+    <div className="min-h-screen flex flex-col gap-10 items-center justify-center 
     bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 p-4">
+      
+      <div 
+      onClick={() => navigate('/')}
+      className="bg-slate-700 px-10 py-1 rounded-xl hover:bg-slate-600 cursor-pointer">
+        <HomeIcon className="text-white "/>
+      </div>
+
       <Card className="w-full max-w-md bg-gray-900/40 backdrop-blur-xl rounded-xl border border-gray-800/50 ">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-center text-white">
