@@ -6,7 +6,7 @@ import { scrapeDetails } from "../utils/Details-scrape/FireewallScrape.js"
 import { scrapeAmazon, scrapeEbay } from "../utils/scrapeGraphAi.js"
 import NodeCache from 'node-cache'
 import { Product } from "../models/product.model.js"
-import { getSocketIO } from "../socker-io.js"
+import { getSocketIO } from "../socket-io.js"
 import { fetchImages, updateProductImageUrls } from "../utils/unsplash/unsplash.js"
 
 const cache = new NodeCache({ stdTTL: 600 });
@@ -17,7 +17,7 @@ const pageLimit = 3
 
 export const getPromptAndFetch = async (req, res, next) => {
 
-    const { prompt } = req.body
+    const { prompt } = req.body 
     let { page = 1 } = req.query
     const limit = 10
 
@@ -99,7 +99,7 @@ export const getPromptAndFetch = async (req, res, next) => {
 
         console.log("Now scraping as product was found..... ")                    
 
-        console.log(`Scraping from ${store}: for page ${page}`)
+        console.log(`Scraping from ${store}: for page ${page}`) 
 
         
 

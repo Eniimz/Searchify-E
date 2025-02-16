@@ -77,13 +77,13 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({ setSelectedProd
     </Button>
 
      {/* <div className='rounded-md relative'> */}
-          <TooltipProvider>
+          {/* <TooltipProvider>
             <Tooltip>
-              <TooltipTrigger asChild>
+              <TooltipTrigger asChild> */}
                   {/* <div className='absolute w-full h-full cursor-pointer'></div> */}
                   <div>
                   <Button
-                  disabled = {page === 3 || prefetchCompleted === false ? true : false }
+                  disabled = {page === 3 }
                   onClick={handleNext}
                   className={`
                     "bg-gradient-to-r from-green-500/30 to-blue-500/30 hover:from-green-600/30 hover:to-blue-600/30"
@@ -92,12 +92,12 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({ setSelectedProd
                       Next
                   </Button>
                   </div>
-              </TooltipTrigger>
+              {/* </TooltipTrigger>
               <TooltipContent>
                 <p>{prefetchCompleted ? 'Go next' : 'Please wait...'}</p>
               </TooltipContent>
             </Tooltip>
-          </TooltipProvider>
+          </TooltipProvider> */}
 
           
       {/* </div>    */}

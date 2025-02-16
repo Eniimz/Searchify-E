@@ -1,4 +1,5 @@
 import { Server } from "socket.io";
+import { preFetchNextPage } from "./controllers/promptControllers/prefetch.controller.js";
 let io;
 
 export const initializeSocket = (server) => {
@@ -12,9 +13,18 @@ export const initializeSocket = (server) => {
   io.on("connection", (socket) => {
     console.log(`User connected: ${socket.id}`);
 
-    socket.on("send_message", (data) => {
-      io.emit("receive_message", data); // Broadcast message
-    });
+    
+    socket.on('prefetchStart', async (page, query) => {
+      console.log("Prefetch started: ", page)
+  
+      const nextPageData = await preFetchNextPage(page, query)
+
+      socket.emit("PrefetchFinished", nextPageData, page)
+    })
+
+
+
+
 
     socket.on("disconnect", () => {
       console.log(`User disconnected: ${socket.id}`);

@@ -9,7 +9,7 @@ import http from 'http'
 
 
 import { ProductDetails } from './models/productDetails.model.js'
-import { getSocketIO, initializeSocket } from './socker-io.js'
+import { getSocketIO, initializeSocket } from './socket-io.js'
 
 dotenv.config()
 
@@ -26,7 +26,7 @@ app.use(cors())
 
 app.use(express.json());
 
-initializeSocket(httpServer)
+const io = initializeSocket(httpServer)
 
 mongoose.connect(process.env.MONGO_URI)
 .then(async () => {

@@ -4,6 +4,7 @@ import { combineReducers, configureStore } from '@reduxjs/toolkit'
 import productReducer from "./productSlice"
 import userReducer from "./userSlice"
 import prefetchReducer from "./prefetchSlice"
+import pageReducer from "./pageSlice"
 import { persistStore, persistReducer } from 'redux-persist'
 import storage from 'redux-persist/lib/storage'
 import socketMiddleware from './middlewares/socket-middleware'
@@ -11,7 +12,8 @@ import socketMiddleware from './middlewares/socket-middleware'
 const rootReducer = combineReducers({
     product: productReducer,
     user: userReducer,
-    prefetch: prefetchReducer
+    prefetch: prefetchReducer,
+    pages: pageReducer
 })
 
 const presistConfig = {

@@ -17,6 +17,8 @@ import axios from "axios";
 import { div } from "framer-motion/client";
 import { setUser } from "@/redux/userSlice";
 import { setPrefetchCompleted } from "@/redux/prefetchSlice";
+import { setPageProducts } from "@/redux/pageSlice";
+import { useSocket } from "@/components/socket-provider";
 
 
 
@@ -34,18 +36,23 @@ export default function Home() {
 
   const navigate = useNavigate()
   const dispatch = useDispatch()
+
   const [ searchParams, setSearchParams ] = useSearchParams()
+  const { socket } = useSocket()
 
   const page = Number(searchParams.get('page')) || 1
 
   const { products: persistedProducts, currentPage, recentQuery, previousPage } = useSelector(state => state.product)
   const { user, fullname } = useSelector(state => state.user)
-  const { prefetchCompleted } = useSelector(state => state.prefetch)
+  const { pages } = useSelector(state => state.pages)
 
+  let newProducts = pages[page].data
   
 
   const [products, setProducts] = useState([])
   const [selectedProducts, setSelectedProducts] = useState<selectedProduct[]>([])
+
+  // const [newProducts, setNewProducts] = useState()
 
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(false)
@@ -55,9 +62,9 @@ export default function Home() {
 
   const flexOrGrid = clsx({
 
-    'flex justify-center': products?.length === 0,
+    'flex justify-center': newProducts?.length === 0,
     
-    'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6': products?.length > 0
+    'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6': newProducts?.length > 0
     
     })
 
@@ -66,7 +73,6 @@ export default function Home() {
         setSearchParams({ page: 1 })
       }
 
-      dispatch(setPrefetchCompleted(true))
       // if(recentQuery){
       //   dispatch(populateRecentQuery(null))
       // }
@@ -74,51 +80,88 @@ export default function Home() {
       setInput(e.target.value)
     }
 
-    const handlePromptAndFetch = async (inputQuery: string) => {
+    // const handlePromptAndFetch = async (inputQuery: string) => {
 
-      if(!inputQuery || inputQuery === '') return
+    //   if(!inputQuery || inputQuery === '') return
 
-      dispatch(populateRecentQuery(inputQuery))
-      dispatch(setPrefetchCompleted(false))
+    //   dispatch(populateRecentQuery(inputQuery))
+    //   dispatch(setPrefetchCompleted(false))
 
-      const prompt: prompt = {
-        prompt: inputQuery
-      }
+    //   const prompt: prompt = {
+    //     prompt: inputQuery
+    //   }
   
-      setLoading(true)
+    //   setLoading(true)
+
+    //   try{
+  
+    //     const res = await fetch(`http://localhost:3000/api/prompt?page=${page}`, {
+    //       method: 'POST',
+    //       headers: {'Content-Type' : 'application/json'},
+    //       body: JSON.stringify(prompt)
+  
+    //     })
+  
+        
+    //     const data = await res.json()
+  
+    //     if(res.ok){
+    //       console.log("ok res received")
+    //     }
+  
+    //     if(data){
+    //       console.log("The data in res: ", data.allProducts)
+    //       setProducts(data.allProducts) 
+    //       dispatch(populateProducts(data.allProducts))
+    //       setLoading(false)
+    //     }else{
+    //       console.log("No data received")
+    //     }
+  
+        
+    //   }catch(err){
+    //     setLoading(false)
+    //   }
+      
+    // }
+
+    // useEffect(() => {
+
+    // }, [page])
+
+    const handlePrompt = async (prompt) => {
+
+      if(!prompt || prompt === '') return
 
       try{
-  
-        const res = await fetch(`http://localhost:3000/api/prompt?page=${page}`, {
-          method: 'POST',
-          headers: {'Content-Type' : 'application/json'},
-          body: JSON.stringify(prompt)
-  
+
+        setLoading(true)
+
+        const res = await axios.post("http://localhost:3000/api/handle-prompt", {
+          prompt
         })
-  
-        
-        const data = await res.json()
-  
-        if(res.ok){
-          console.log("ok res received")
-        }
-  
-        if(data){
-          console.log("The data in res: ", data.allProducts)
-          setProducts(data.allProducts) 
-          dispatch(populateProducts(data.allProducts))
-          setLoading(false)
-        }else{
-          console.log("No data received")
-        }
-  
-        
+
+        const data = res.data
+
+        dispatch(setPageProducts(data))
+        setLoading(false)
+
+        const nextPage = page + 1
+        const query = data.query
+
+        socket.emit("prefetchStart", nextPage, query)
+
+        console.log("The data received: ", data)
+
       }catch(err){
         setLoading(false)
+        console.error("Error in fetching: ", err)
       }
-      
+
     }
 
+
+  
 
     const toggleCompareMode = () => {
       
@@ -205,45 +248,42 @@ export default function Home() {
           if (productsRef.current) {
             productsRef.current.scrollIntoView({ behavior: "smooth" });
           }
-    }, [products]);
+    }, [pages]);
 
+    // useEffect(() => {
 
-    useEffect(() => {
+    //   console.log("----The urll check-----")
+    //   console.log("The search Query: ", recentQuery)
+    //   console.log("The page: ", page)
+    //   console.log("The current page: ", currentPage)
+    //   console.log("previous Page bool: ", previousPage) 
+    //   console.log("----The urll check END-----")
 
-      console.log("----The urll check-----")
-      console.log("The search Query: ", recentQuery)
-      console.log("The page: ", page)
-      console.log("The current page: ", currentPage)
-      console.log("previous Page bool: ", previousPage) 
-      console.log("----The urll check END-----")
+    //   if(!recentQuery) return
 
-      if(!recentQuery) return
-
-      if(previousPage){
-        setProducts(persistedProducts)
-        dispatch(populatePreviousPage(false))
-      }
-      else{
-        const fetchProducts = async () => {
-          await handlePromptAndFetch(recentQuery)
-        }
+    //   if(previousPage){
+    //     setProducts(persistedProducts)
+    //     dispatch(populatePreviousPage(false))
+    //   }
+    //   else{
+    //     const fetchProducts = async () => {
+    //       await handlePromptAndFetch(recentQuery)
+    //     }
         
-        fetchProducts()
-      }
+    //     fetchProducts()
+    //   }
 
-      dispatch(populateCurrentPage(page))
+    //   dispatch(populateCurrentPage(page))
 
-      if(page === 3){
-        dispatch(setPrefetchCompleted(true))
-      }
+    //   if(page === 3){
+    //     dispatch(setPrefetchCompleted(true))
+    //   }
 
-      if(page > 3){
-        navigate('/Not-found')
-      }
+    //   if(page > 3){
+    //     navigate('/Not-found')
+    //   }
 
-    }, [page])
-
-
+    // }, [page])
 
     
   return (
@@ -322,7 +362,7 @@ export default function Home() {
                 />
               </div>
               <Button 
-              onClick={() => handlePromptAndFetch(input)}
+              onClick={() => handlePrompt(input)}
               className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white">
                 Generate
               </Button>
@@ -375,7 +415,7 @@ export default function Home() {
 
               <Loader /> :
 
-              (products?.map((product, index) => (
+              (newProducts?.map((product, index) => (
                 <ProductCard key={index} product = {product} index = {index} 
                 isSelected = {selectedProducts?.some(
                   (p) => p.id === product.id && p.title === product.title
@@ -387,7 +427,7 @@ export default function Home() {
             }
           </div>
 
-            {products?.length > 0 && <div className="flex justify-center mt-10">
+            {newProducts?.length > 0 && <div className="flex justify-center mt-10">
               <PaginationControls setSelectedProducts = {removeSelected}/>
             </div>}
 

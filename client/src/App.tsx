@@ -21,7 +21,7 @@ function App() {
 
   return (
     
-    // <SocketProvider>
+    <SocketProvider>
       <BrowserRouter>
       
         <Routes>
@@ -33,7 +33,7 @@ function App() {
           {/* <Route path="/Not-Found" element = { <NotFound /> } */}
         </Routes>
       </BrowserRouter>
-    // </SocketProvider>
+    </SocketProvider>
   )
 }
 
