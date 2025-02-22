@@ -3,10 +3,11 @@
 import WishlistHeader from "../components/wishlist/wishlist-header"
 import WishlistGrid from "../components/wishlist/wishlist-grid"
 import { SearchBar } from "../components/wishlist/search-bar"
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import axios from "axios"
 import { useSelector } from "react-redux"
 import { title } from "process"
+import { useNavigate } from "react-router-dom"
 
 export default function WishlistPage() {
 
@@ -15,6 +16,10 @@ export default function WishlistPage() {
 
   const timerRef = useRef<ReturnType<typeof setTimeout>>()
   const { user } = useSelector(state => state.user)
+
+  const [products, setProducts] = useState([])
+
+  const navigate = useNavigate()
 
 
   const handleSearch = async (searchTerm) => {
@@ -52,11 +57,41 @@ export default function WishlistPage() {
 
   }
 
-  return (
-    <div className="min-h-screen  bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden">
-      {/* Cyber grid background */}
+  const getWishlistItems = async () => {
+  
+      const res = await axios.get(`http://localhost:3000/api/wishlist/fetch?userId=${user}`)
+  
+      console.log("The wishlist data: ", res.data)
+  
+      const data = res.data
+  
+      console.log("feature test: ", data.products[0]?.productFeatures[0]?.feature)
+  
+      setProducts(data.products)
+  
+    }
 
-    
+    useEffect(() => {
+
+      getWishlistItems()
+  
+    }, [])
+
+    const handleProducts = (foundProducts) => {
+      setProducts(foundProducts)
+    }
+
+    useEffect(() => {
+
+      if(!user){
+        navigate('/')
+      }
+
+    }, [])
+
+  return (
+    <div className="min-h-screen  justify-center bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden">
+      {/* Cyber grid background */}
 
       {/* <div className="absolute inset-0 bg-grid-cyber opacity-20" /> */}
 
@@ -74,8 +109,11 @@ export default function WishlistPage() {
             <SearchBar onSearch = { handleSearch } />
           </div>
 
-        <div className="container mx-auto px-4 py-4 ">
-          <WishlistGrid searchResults = { searchResults } />
+        <div className="px-4 container py-4 w-full">
+          <WishlistGrid 
+          products = { products }
+          setProducts = { handleProducts }
+          searchResults = { searchResults } />
         </div>
       </div>
     </div>

@@ -23,11 +23,9 @@ according to the product title. If any other data is not found write "N/A" for t
 export const scrapeAmazon = async (queryParams, page) => {
 
 
-  // prompt = `Only Extract 8 products data and return the result in json format with fields, 
-  // title, price, rating, description, imageUrl, link. if any image is not found.
-  // take any one image from here but dont use the same image twice: 
-  // ${images}
-  // if any other data is not found write "N/A" for that field`
+// prompt = `Only Extract 8 products data and return the result in json format with fields, 
+// title, price, rating, description, imageUrl, link. if description is not scraped, add your own
+// according to the product title. If any other data is not found write "N/A" for that field`
 
 const url = `https://amazon.com/s?k=${queryParams}&page=${page}`;
 
@@ -50,7 +48,7 @@ const url = `https://amazon.com/s?k=${queryParams}&page=${page}`;
 
 };
 
-export const scrapeEbay = async (queryParams, page, images) => {
+export const scrapeEbay = async (queryParams, page) => {
   
   // prompt = `Only Extract 8 products data and return the result in json format with fields, 
   // title, price, rating, description, imageUrl, link. if any image is not found.
@@ -83,5 +81,6 @@ export const scrapeEbay = async (queryParams, page, images) => {
 }
 
 
+// await scrapeAmazon("ipads", 1)
 
 export const scrapedData = { scrapeAmazon, scrapeEbay } ;

@@ -4,132 +4,141 @@ import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import WishlistItem from "./wishlist-item"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight, LucideArrowLeft, SlidersHorizontal } from "lucide-react"
+import { ArrowUpRightFromSquare, ChevronLeft, ChevronRight, LucideArrowLeft, SlidersHorizontal } from "lucide-react"
 import axios from "axios"
-import { useSelector } from "react-redux"
+import { useDispatch, useSelector } from "react-redux"
 import Loader from "../loader"
 import { useNavigate } from "react-router-dom"
+import { populatePreviousPage, selectedCompareProducts } from "@/redux/productSlice"
 
-// const items = [
-//   {
-//     id: 1,
-//     name: "TechPro Ultrabook X14",
-//     price: 799.99,
-//     specs: {
-//       display: '14" 1080p',
-//       ram: "6GB DDR4",
-//       storage: "64GB+128GB",
-//       processor: "Intel Core",
-//     },
-//   },
-//   {
-//     id: 2,
-//     name: "TechPro Ultrabook X15",
-//     price: 899.99,
-//     specs: {
-//       display: '15" 1080p',
-//       ram: "8GB DDR4",
-//       storage: "128GB+256GB",
-//       processor: "Intel Core i5",
-//     },
-//   },
-//   {
-//     id: 3,
-//     name: "TechPro Ultrabook X16",
-//     price: 999.99,
-//     specs: {
-//       display: '16" 1440p',
-//       ram: "16GB DDR4",
-//       storage: "256GB+512GB",
-//       processor: "Intel Core i7",
-//     },
-//   },
-// ]
 
-export default function WishlistGrid({ searchResults }) {
+
+export default function WishlistGrid({ searchResults, products, setProducts }) {
   
   const navigate = useNavigate()
+  const dispatch = useDispatch()
 
   const { user } = useSelector(state => state.user)
   const { currentPage } = useSelector(state => state.product)
 
-  const [products, setProducts] = useState([])
   const [isLoading, setIsLoading] = useState(false)
 
-  const getWishlistItems = async () => {
+  // const [selectedItems, setSelectedItems] = useState([])
 
-    const res = await axios.get(`http://localhost:3000/api/wishlist/fetch?userId=${user}`)
+  // const [isCompareMode, setCompareMode] = useState(false)
 
-    console.log("The wishlist data: ", res.data)
 
-    const data = res.data
+  const toggleItemSelection = async (id: string, title: string) => {
+    try {
+      // Step 1: Remove the item from the local state
+      const updatedProducts = products.filter(product => product.productId !== id);
+      setProducts(updatedProducts);
 
-    console.log("feature test: ", data.products[0].productFeatures[0].feature
+      // Step 2: Send a POST request to delete the item from the wishlist
+      const response = await axios.post('http://localhost:3000/api/wishlist/delete', {
+        title,
+        id,
+        userId: user
+      });
 
-    )
+      // Log the response for debugging
+      console.log('Delete response:', response.data);
 
-    setProducts(data.products)
+    } catch (error) {
+      console.error('Error deleting item from wishlist:', error);
 
+      // If the request fails, revert the local state to its previous value
+      setProducts(products);
+    }
+  };
+
+  // useEffect(() => {
+
+  //   console.log("selectedItems: ", selectedItems)
+  // }, [selectedItems])
+
+  const handleBack = () => {
+    navigate(`/?page=${currentPage}`)
   }
 
+  // const toggleCompareMode = () => {
+      
+  //   if(isCompareMode){
+  //     console.log("Cancel compare")
+  //     setCompareMode((prevValue) => !prevValue)
+  //     setSelectedItems([])
+
+  //   }else{
+  //     console.log("Cancel compare")
+  //     setCompareMode((prevValue) => !prevValue)
+      
+  //   }
+
+  // }
+
+  // const handleNavigateCompare = () => {
+  
+  //       dispatch(populatePreviousPage(true))
+  //       dispatch(selectedCompareProducts(selectedItems))
+  
+  //       navigate('/compare')
+  //     }
+  
+  //     const handleNavigateWishlist = () => {
+  //       dispatch(populatePreviousPage(true))
+  //       navigate(`/wishlist`)
+  //     }
 
   useEffect(() => {
-    
-    
+
+
     if(searchResults){
       setProducts(searchResults)
     }
         
   }, [searchResults])
 
-  useEffect(() => {
-
-    getWishlistItems()
-
-  }, [])
-
-  const [selectedItems, setSelectedItems] = useState<number[]>([])
-
-  const [isCompareMode, setIsCompareMode] = useState(false)
-
-  const toggleItemSelection = (id: number) => {
-    setSelectedItems((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]))
-  }
-
-  const handleBack = () => {
-    navigate(`/?page=${currentPage}`)
-  }
-
   return (
     <div>
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex justify-between items-center mb-8 w-full">
       
-      <div className="px-6">
-          <Button variant="ghost" className="mb-4 text-white font-bold text-lg hover:bg-gray-800/80" onClick={handleBack}>
+      <div className="">
+          <Button variant="ghost" className="flex justify-center text-white font-bold text-lg hover:bg-gray-800/80" 
+          onClick={handleBack}>
               <LucideArrowLeft className="mr-2 h-4 w-4 text-white text-lg font-bold" size={20} />
               Product Overview
           </Button>
-        </div>
-        <h2 className="text-2xl font-semibold text-white">Featured Items</h2>
-        <div className="flex gap-4">
+      </div>
+
+      {/* <h2 className="text-2xl font-semibold text-white">Featured Items</h2> */}
+
+      {/* <div className="flex gap-2">
         
-          <div className="flex gap-2">
-            <Button variant="outline" size="icon" className="bg-gray-900/60 border-gray-700">
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="icon" className="bg-gray-900/60 border-gray-700">
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-          <Button 
-          className={`bg-gradient-to-r from-green-600/30 to-blue-600/30
-          text-white border border-white/30`}
-          disabled={selectedItems.length === 0}
+        <Button
+          // onClick={toggleCompareMode}
+          disabled= { !user || products.length === 0  }
+          className={`${
+            isCompareMode
+              ? "bg-red-500/30 hover:bg-red-600/30"
+              : `bg-gradient-to-r from-green-600/30 to-blue-600/30
+                text-white border border-white/30 hover:from-green-600/30 hover:to-blue-600/30`
+          } h-9`}
         >
-            <SlidersHorizontal className="h-4 w-4 mr-2" />
-            Compare ({selectedItems.length})
-          </Button>
-        </div>
+          {isCompareMode ? "Cancel Compare" : `Compare`} <SlidersHorizontal className="h-4 w-4 mr-2" />
+        </Button>
+
+        {
+          selectedItems.length === 2 && (
+          <Button
+          onClick={handleNavigateCompare}
+          className={` bg-gradient-to-r from-green-500/30 to-blue-500/30 hover:from-green-600/30 hover:to-blue-600/30
+          text-white border border-white/30 sticky`}
+        >
+          Go to Compare <ArrowUpRightFromSquare />
+        </Button>
+            )}  
+
+      </div> */}
       </div>
 
      {isLoading ?
@@ -142,8 +151,11 @@ export default function WishlistGrid({ searchResults }) {
             <WishlistItem
               key={product.productId}
               item={product}
-              isSelected={selectedItems.includes(product.id)}
-              onToggleSelect={() => toggleItemSelection(product.id)}
+              // isSelected={selectedItems?.some(
+              //   (p) => p.id === product.productId && p.title === product.ProductTitle
+              // )}
+              onToggleSelect={(id, title) => toggleItemSelection(id, title)}
+              // isCompareMode = {isCompareMode}
             />
           ))}
       </div>

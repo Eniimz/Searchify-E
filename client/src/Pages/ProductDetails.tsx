@@ -10,6 +10,7 @@ import ProductSidebar from "@/components/Product-Details/ProductSidebar"
 import { Product } from "../lib/types"
 import { div } from "framer-motion/client"
 import { useSelector } from "react-redux"
+import { useSearchParams } from "react-router-dom"
 
 
 
@@ -40,7 +41,10 @@ const products: Product[] = [
 
 export default function ProductDetails() {
 
-    const { products } = useSelector(state => state.product)
+    const { pages } = useSelector(state => state.pages)
+    const { currentPage } = useSelector(state => state.product)
+
+    const relatedData = pages[currentPage].data
 
     const [isCompareMode, setCompareMode] = useState(false)
     // const [products, setProducts] = useState([])
@@ -76,7 +80,7 @@ export default function ProductDetails() {
 
               <Loader /> :
 
-              (products?.slice(0, 6)?.map((product, index) => (
+              (relatedData?.slice(0, 6)?.map((product, index) => (
                 <ProductCard key={index} product = {product} index = {index} 
                 />
             

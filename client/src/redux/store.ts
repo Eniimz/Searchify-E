@@ -12,7 +12,6 @@ import socketMiddleware from './middlewares/socket-middleware'
 const rootReducer = combineReducers({
     product: productReducer,
     user: userReducer,
-    prefetch: prefetchReducer,
     pages: pageReducer
 })
 

@@ -5,9 +5,9 @@ import { response } from 'express';
 const { scrapeAmazon, scrapeEbay } = scrapedData
 
 const schema = {
-  product: "product name in string",
-  maxPrice : { currency: "currency here", value: "price value in numbers here"  },
-  advice: "additional info or advice if user asks of it"
+  productQuery: "product name in string",
+  // maxPrice : { currency: "currency here", value: "price value in numbers here"  },
+  // advice: "additional info or advice if user asks of it"
 }
 
 
@@ -15,12 +15,23 @@ const msgs = [
   {
     "role": "system",
     "content": `
-    The user will describe what they want to shop for. Your task is to extract the product, 
-    the product brand (if mentioned),its specs (if mentioned) and the maximum price they are willing to spend.
-    make sure the product is plural, if its not in plural make it with the brand. If the query doesn't mention 
-    a maximum price,any product, set it to null. Output the result as a JSON object according to this schema: ${JSON.stringify(schema)}. 
+    The user will describe what they want to shop for. Your task is to extract the product query, 
+    the product brand (if mentioned),its specs (if mentioned) and how much they are willing to spend (if mentioned).
+    If they mention traits like cheapest, latest, expensive etc include those as well. Make sure the product is plural, if its not in plural make it with the brand. If the query doesn't mention 
+    a maximum price,any product, dont mention it. Output the result as a JSON object according to this schema: ${JSON.stringify(schema)}. 
     The text returned by you should always be in lowercase alphabets.
-  `
+
+    Example:
+    user prompt: i want some good deals on desktop pcs under 1000$
+    productQuery: desktop pcs under 1000$ 
+
+    user prompt: show me great deals on iphones under 500$
+    productQuery: iphones under 500$
+
+    user prompt: show me cheapest but good deals on headphones
+    productQuery: cheapest but good deals on headphones
+    
+    `
   },
 
 ];

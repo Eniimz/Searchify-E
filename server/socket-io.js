@@ -19,7 +19,8 @@ export const initializeSocket = (server) => {
   
       const nextPageData = await preFetchNextPage(page, query)
 
-      socket.emit("PrefetchFinished", nextPageData, page)
+
+      socket.emit("PrefetchFinished", nextPageData, page, query)
     })
 
 

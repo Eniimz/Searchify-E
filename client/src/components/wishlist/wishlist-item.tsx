@@ -2,35 +2,15 @@
 import { useState } from "react"
 // import Image from "next/image"
 import { motion } from "framer-motion"
-import { Cpu, MemoryStickIcon as Memory, Monitor, HardDrive, ShoppingCart, Heart, LucideArrowDownLeftFromSquare, DotIcon } from "lucide-react"
+import { Cpu, MemoryStickIcon as Memory, Monitor, HardDrive, ShoppingCart, Heart, LucideArrowDownLeftFromSquare, DotIcon, TrashIcon, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useDispatch } from "react-redux"
 import { useNavigate } from "react-router-dom"
 import { populatePreviousPage } from "@/redux/productSlice"
+import { i } from "framer-motion/client"
 
-interface Spec {
-  icon: JSX.Element
-  label: string
-  value: string
-}
 
-interface WishlistItemProps {
-  item: {
-    id: number
-    name: string
-    price: number
-    specs: {
-      display: string
-      ram: string
-      storage: string
-      processor: string
-    }
-  }
-  isSelected: boolean
-  onToggleSelect: () => void
-}
-
-export default function WishlistItem({ item, isSelected, onToggleSelect }: WishlistItemProps) {
+export default function WishlistItem({ item, onToggleSelect }) {
   
   const dispatch = useDispatch()
   const navigate = useNavigate()
@@ -44,6 +24,9 @@ export default function WishlistItem({ item, isSelected, onToggleSelect }: Wishl
     navigate(`/products/${encodeURIComponent(product.productTitle)}?id=${product.productId}`)
   }
 
+  const handleToggle = (id, title) => {
+    onToggleSelect(id, title)
+  }
 
 
   return (
@@ -61,10 +44,10 @@ export default function WishlistItem({ item, isSelected, onToggleSelect }: Wishl
 
       <div className="relative bg-gray-900/40 backdrop-blur-xl rounded-xl border border-gray-800/50 overflow-hidden">
         {/* Selection indicator */}
-        <div
+        {/* <div
           className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 transition-opacity duration-300"
-          style={{ opacity: isSelected ? 1 : 0 }}
-        />
+          style={ 1 }
+        /> */}
 
         {/* Product Image Section */}
         <div className="relative h-[200px] bg-gradient-to-b from-gray-900/50 to-gray-900/0">
@@ -78,14 +61,15 @@ export default function WishlistItem({ item, isSelected, onToggleSelect }: Wishl
           />
 
           {/* Wishlist Button */}
-          <button
-            onClick={onToggleSelect}
+          
+            <button
+            onClick={() => handleToggle(item.productId, item.ProductTitle)}
             className="absolute top-4 right-4 p-2 rounded-full bg-gray-900/50 backdrop-blur-sm border border-gray-800/50 transition-colors duration-300 hover:bg-gray-800/50"
           >
-            <Heart
+            <Trash2
               className="w-4 h-4 transition-colors duration-300"
-              fill={isSelected ? "currentColor" : "none"}
-              stroke={isSelected ? "none" : "currentColor"}
+              // fill={isSelected ? "currentColor" : "none"}
+              stroke={"red"}
             />
           </button>
         </div>
@@ -94,31 +78,31 @@ export default function WishlistItem({ item, isSelected, onToggleSelect }: Wishl
         <div className="p-6 space-y-6">
           {/* Product Info */}
           <div className="pt-10">
-            <h3 className="text-lg font-medium text-white mb-2">{item?.ProductTitle?.length > 30 ?  item?.ProductTitle?.slice(0, 30) + '...' : item?.productTitle}</h3>
+            <h3 className="text-md font-bold text-white mb-2">{item?.ProductTitle?.length > 26 ?  item?.ProductTitle?.slice(0, 26) + '...' : item?.productTitle}</h3>
             <div className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
-              ${item?.price?.currentPrice}
+              {item?.price?.currentPrice.startsWith("$")? item?.price?.currentPrice : '$'+ item?.price?.currentPrice }
             </div>
           </div>
 
           {/* Specs Grid */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* <div className="grid grid-cols-2 gap-4">
             {
-            Array.from({ length: 4 }).map((_, index) => (
+            Array.from({ length: 3 }).map((_, index) => (
               <div key={index} className="flex items-center gap-2 text-sm">
                 <div className="rounded-full bg-gray-800/50 text-gray-400"> <DotIcon /></div>
                 <div>
-                  <div className="text-gray-500 text-xs">{item.productFeatures[index].feature}</div>
-                  <div className="text-gray-300">
+                  <div className="text-gray-500 text-xs">{item.productFeatures[index]?.feature}</div>
+                  {/* <div className="text-gray-300">
                     
-                    {item.productFeatures[index].details.length > 10 ? 
-                    item.productFeatures[index].details.slice(0, 10) + '...' 
-                    : item.productFeatures[index].details.length}
+                    {item.productFeatures[index]?.details.length > 10 ? 
+                    item.productFeatures[index]?.details.slice(0, 10) + '...' 
+                    : item.productFeatures[index]?.details.length}
 
-                  </div>
-                </div>
+                  </div> */}
+                {/* </div>
               </div>
-            ))}
-          </div>
+            ))} */}
+          {/* </div> */} 
 
           {/* Action Button */}
           <Button 

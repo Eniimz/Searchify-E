@@ -11,6 +11,7 @@ import { div } from "framer-motion/client"
 import AuthPage from "./Pages/Auth"
 import { SocketProvider } from "./components/socket-provider"
 import NotFound from "./Pages/Not-Found"
+import PrivateRoutes from "./Pages/Private-Routes"
 
 
 
@@ -26,11 +27,13 @@ function App() {
       
         <Routes>
           <Route path="/" element = {<Home />}/>
-          <Route path="/compare" element = {<Compare />} />
           <Route path="/products/:productTitle" element = {<ProductDetails />}  /> 
-          <Route path="/wishlist" element = { <WishlistPage /> } />
           <Route path="/sign-up" element = { <AuthPage /> } />
-          {/* <Route path="/Not-Found" element = { <NotFound /> } */}
+          <Route path="/Not-Found" element= {<NotFound />}/>
+          <Route element = {<PrivateRoutes />}  >
+            <Route path="/wishlist" element = { <WishlistPage /> } />
+            <Route path="/compare" element = {<Compare />} />
+          </Route>
         </Routes>
       </BrowserRouter>
     </SocketProvider>

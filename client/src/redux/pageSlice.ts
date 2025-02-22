@@ -16,14 +16,17 @@ const pageSlice = createSlice({
     name: 'pages',
     initialState,
     reducers: {
-        setPageProducts: (state, action) => {
+        setPageProducts: (state, action) => {   
             const { data: products, page } = action.payload
             state.pages[page].data = products
             state.pages[page].isPrefetched = true
+        },
+        setPageStateDefault: (state, action) => {
+            return initialState
         }
     }   
 
 })
 
-export const { setPageProducts } = pageSlice.actions    
+export const { setPageProducts, setPageStateDefault } = pageSlice.actions    
 export default pageSlice.reducer

@@ -17,7 +17,7 @@ import axios from "axios";
 import { div } from "framer-motion/client";
 import { setUser } from "@/redux/userSlice";
 import { setPrefetchCompleted } from "@/redux/prefetchSlice";
-import { setPageProducts } from "@/redux/pageSlice";
+import { setPageProducts, setPageStateDefault } from "@/redux/pageSlice";
 import { useSocket } from "@/components/socket-provider";
 
 
@@ -46,7 +46,7 @@ export default function Home() {
   const { user, fullname } = useSelector(state => state.user)
   const { pages } = useSelector(state => state.pages)
 
-  let newProducts = pages[page].data
+  let newProducts = pages[page]?.data
   
 
   const [products, setProducts] = useState([])
@@ -62,7 +62,7 @@ export default function Home() {
 
   const flexOrGrid = clsx({
 
-    'flex justify-center': newProducts?.length === 0,
+    'flex justify-center': loading,
     
     'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6': newProducts?.length > 0
     
@@ -73,65 +73,14 @@ export default function Home() {
         setSearchParams({ page: 1 })
       }
 
-      // if(recentQuery){
-      //   dispatch(populateRecentQuery(null))
-      // }
-
       setInput(e.target.value)
     }
-
-    // const handlePromptAndFetch = async (inputQuery: string) => {
-
-    //   if(!inputQuery || inputQuery === '') return
-
-    //   dispatch(populateRecentQuery(inputQuery))
-    //   dispatch(setPrefetchCompleted(false))
-
-    //   const prompt: prompt = {
-    //     prompt: inputQuery
-    //   }
-  
-    //   setLoading(true)
-
-    //   try{
-  
-    //     const res = await fetch(`http://localhost:3000/api/prompt?page=${page}`, {
-    //       method: 'POST',
-    //       headers: {'Content-Type' : 'application/json'},
-    //       body: JSON.stringify(prompt)
-  
-    //     })
-  
-        
-    //     const data = await res.json()
-  
-    //     if(res.ok){
-    //       console.log("ok res received")
-    //     }
-  
-    //     if(data){
-    //       console.log("The data in res: ", data.allProducts)
-    //       setProducts(data.allProducts) 
-    //       dispatch(populateProducts(data.allProducts))
-    //       setLoading(false)
-    //     }else{
-    //       console.log("No data received")
-    //     }
-  
-        
-    //   }catch(err){
-    //     setLoading(false)
-    //   }
-      
-    // }
-
-    // useEffect(() => {
-
-    // }, [page])
 
     const handlePrompt = async (prompt) => {
 
       if(!prompt || prompt === '') return
+
+      dispatch(setPageStateDefault())
 
       try{
 
@@ -235,9 +184,8 @@ export default function Home() {
         console.log(data)
 
         dispatch(setUser(null))
-        dispatch(populateRecentQuery(null))
-        dispatch(populateProducts(null))
-        dispatch(previousPage(false))
+        dispatch(populatePreviousPage(false))
+        dispatch(setPageStateDefault())
 
       }catch(err){
         console.log("Error while logging out: ", err)
@@ -250,40 +198,14 @@ export default function Home() {
           }
     }, [pages]);
 
-    // useEffect(() => {
 
-    //   console.log("----The urll check-----")
-    //   console.log("The search Query: ", recentQuery)
-    //   console.log("The page: ", page)
-    //   console.log("The current page: ", currentPage)
-    //   console.log("previous Page bool: ", previousPage) 
-    //   console.log("----The urll check END-----")
-
-    //   if(!recentQuery) return
-
-    //   if(previousPage){
-    //     setProducts(persistedProducts)
-    //     dispatch(populatePreviousPage(false))
-    //   }
-    //   else{
-    //     const fetchProducts = async () => {
-    //       await handlePromptAndFetch(recentQuery)
-    //     }
-        
-    //     fetchProducts()
-    //   }
-
-    //   dispatch(populateCurrentPage(page))
-
-    //   if(page === 3){
-    //     dispatch(setPrefetchCompleted(true))
-    //   }
-
-    //   if(page > 3){
-    //     navigate('/Not-found')
-    //   }
-
-    // }, [page])
+    useEffect(() => {
+    
+        if(page > 3){
+          navigate('/?page=1')
+        }
+    
+      }, [page])
 
     
   return (
@@ -382,6 +304,7 @@ export default function Home() {
 
               <Button
                 onClick={toggleCompareMode}
+                disabled= { !user || newProducts?.length === 0  }
                 className={`${
                   isCompareMode
                     ? "bg-red-500/30 hover:bg-red-600/30"
@@ -409,28 +332,29 @@ export default function Home() {
             
 
           </div>
-          <div className={flexOrGrid} ref={productsRef} >
-            {
-            loading ? 
 
-              <Loader /> :
+          {loading ?
+          <Loader /> :
+          <>
+            <div className={flexOrGrid} ref={productsRef} >
+              {         
+                
+                (newProducts?.map((product, index) => (
+                  <ProductCard key={index} product = {product} index = {index} 
+                  isSelected = {selectedProducts?.some(
+                    (p) => p.id === product.id && p.title === product.title
+                  )}
+                  isCompareMode = {isCompareMode}
+                  setSelectedProducts = {handleSelectedProducts}
+                  />)))
 
-              (newProducts?.map((product, index) => (
-                <ProductCard key={index} product = {product} index = {index} 
-                isSelected = {selectedProducts?.some(
-                  (p) => p.id === product.id && p.title === product.title
-                )}
-                isCompareMode = {isCompareMode}
-                setSelectedProducts = {handleSelectedProducts}
-                />)))
+              }
+            </div>
 
-            }
-          </div>
-
-            {newProducts?.length > 0 && <div className="flex justify-center mt-10">
-              <PaginationControls setSelectedProducts = {removeSelected}/>
-            </div>}
-
+              {newProducts?.length > 0 && <div className="flex justify-center mt-10">
+                <PaginationControls setSelectedProducts = {removeSelected}/>
+              </div>}
+          </>}
 
         </div>
       </section>

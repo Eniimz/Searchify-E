@@ -7,7 +7,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
 import Loader from "@/components/loader"
-import { useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
+import { Chart } from "@/components/comparisonPage/Chart"
 
 interface Product {
   name: string
@@ -74,8 +75,12 @@ export default function ModernProductComparison() {
   const { compareProducts, currentPage } = useSelector(state => state.product)
 
   const [compareCards, setCompareCards] = useState([])
+
   const [product1Features, setProduct1Features] = useState([])
   const [product2Features, setProduct2Features] = useState([])
+
+  const [product1Values, setProduct1Values] = useState({})
+  const [product2Values, setProduct2Values] = useState({})
 
   const [AIRecommendations, setAIRecommendations] = useState({})
 
@@ -83,6 +88,8 @@ export default function ModernProductComparison() {
   
   const getProductCards = async () => {
   
+    console.log("useEffect of fetching")
+
     setIsLoading(true)
   
     try{
@@ -98,18 +105,39 @@ export default function ModernProductComparison() {
   
       console.log("The compare products: ", compareProducts)
 
+      console.log("data.error: ", data?.error)
+
       if(data){
+
+
         setCompareCards([data.compareProduct1, data.compareProduct2 ])
         
         const { AIResponse } = data
 
         const { product1, product2 } = AIResponse
 
-
         setProduct1Features(product1.features)
         setProduct2Features(product2.features)
 
-        
+        const { currentPrice, customerRating,  customerReviews, sellerRating, sellerReviews } = product1
+
+        const { currentPrice: cp, customerRating: cr,  customerReviews: crs, sellerRating: sr, sellerReviews: srs } = product2
+
+        setProduct1Values({
+          currentPrice, 
+          customerRating,
+          customerReviews,
+          sellerRating,
+          sellerReviews
+        })
+
+        setProduct2Values({
+          currentPrice: cp, 
+          customerRating: cr,
+          customerReviews: crs,
+          sellerRating: sr,
+          sellerReviews: srs
+        })
   
         console.log("The AI data: ", data)
       }
@@ -118,6 +146,7 @@ export default function ModernProductComparison() {
   
     }catch(err){
       setIsLoading(false)
+      navigate('/')
       console.error("Err fetching compare products: ", err)
     }
   
@@ -177,10 +206,24 @@ export default function ModernProductComparison() {
             feature2={feature2}
             
             isReversed={index % 2 !== 0} />
-
+            
           )})
           
-          }
+          
+        }
+
+        {
+          isLoading ? 
+          <Loader /> :
+          <Chart  
+          product1Title = { compareProducts[0].title } 
+          product2Title = { compareProducts[1].title }
+          product1Values = {product1Values} 
+          product2Values = {product2Values}
+          />
+        }
+
+
           {/* {!isLoading &&
             <Card>
             <CardContent className="relative
@@ -208,6 +251,8 @@ export default function ModernProductComparison() {
               </div>
             </CardContent>
           </Card>} */}
+
+
         </div>
       </div>
 
@@ -228,12 +273,14 @@ function ProductCard({ product }: { product: Product }) {
       />
       <h2 className="text-2xl font-semibold mb-2 w-[300px]">{product?.title}</h2>
       <p className="text-xl font-bold mb-4">{product?.price}</p>
-      <p className="text-muted-foreground mb-4 w-[200px]">{product?.description}</p>
-      <Button
-      variant={"custom"}
-      >
-        Learn More
-      </Button>
+      <p className="text-muted-foreground mb-4 w-[400px]">{product?.description}</p>
+      <Link to={`/products/${product?.title}?id=${product?.id}`} >
+        <Button
+        variant={"custom"}
+        >
+          Learn More
+        </Button>
+      </Link>
     </div>
   )
 }

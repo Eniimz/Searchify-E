@@ -13,22 +13,33 @@ import { Wishlist } from "../../models/wishlist.model.js";
 
 export const getProductDetails = async (req, res, next) => {
 
-    const { productTitle } = req.params;
-    const { id } = req.query
+  
+  const { productTitle } = req.params;
+  const { id } = req.query
+
+  console.log("The product details: ", productTitle)
+  
     try{
 
-        const detailsFromDB = await fetchProductDetailsDB(productTitle, id)
+        // const detailsFromDB = await fetchProductDetailsDB(productTitle, id)
 
-        if(detailsFromDB){
-          res.status(200).json({ product: detailsFromDB })
-          return
-        }
+        // if(detailsFromDB){
+        //   res.status(200).json({ product: detailsFromDB })
+        //   return
+        // }
 
         console.log("details not in db")
 
         const product = await getProductLink(productTitle, id)
     
+        if(!product){
+          res.status(404).json({ message: 'Product not found' })
+          return
+        }
+
         const { link, imageUrl } = product
+
+        
 
         let productDetails = await scrapeDetails(link)
     
@@ -37,12 +48,13 @@ export const getProductDetails = async (req, res, next) => {
         productDetails = {
             productId: id,
             imageUrl,
+            link,
             ...productDetails
         }
     
         res.status(200).json({ product: productDetails })
     
-        addProductDetailsDB(productDetails)
+        addProductDetailsDB(productDetails, product.title)
     }catch(err){
         next(err)
     }
@@ -156,6 +168,7 @@ export const getWishlistItems = async (req, res, next) => {
 
       const wishlist = await Wishlist.findOne({ userId })
 
+      
       if(!wishlist){
         return
         // return res.status(500).json({message: "Not found wishlist", success: false})
@@ -179,16 +192,55 @@ export const getWishlistItems = async (req, res, next) => {
 
   }
 
-const addProductDetailsDB  = async (productDetails) => {
+export const deleteFromWishlist = async (req, res, next) => {
+
+  const { id, title } = req.body;
+
+  if (!id || !title) {
+    return res.status(400).json({ message: "Either 'id' or 'title' is required." });
+  }
+
+  try {
+    // Find the wishlist for the user (assuming userId is available in the request)
+    const userId = req.body.userId; // You need to send userId from the client
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required." });
+    }
+
+    // Find the wishlist for the user
+    const wishlist = await Wishlist.findOne({ userId });
+
+    if (!wishlist) {
+      return res.status(404).json({ message: "Wishlist not found for the user." });
+    }
+
+    // Remove the product from the wishlist
+    wishlist.products = wishlist.products.filter(
+      (product) => product.productId !== id || product.title !== title
+    );
+
+    // Save the updated wishlist
+    await wishlist.save();
+
+    res.status(200).json({ message: "Product removed from wishlist.", wishlist });
+  } catch (error) {
+    console.error("Error deleting product from wishlist:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+
+}
+
+const addProductDetailsDB  = async (productDetails, title) => {
     
+  const filter = { ProductTitle: title }
 
-    // try{
-        const doc = await ProductDetails.insertOne(productDetails)
+  const update = { $set: productDetails }; 
 
-        console.log("The Product Detials inserted")
-    // }catch(err){
-        // console.log("Error occured while saving to db: ", err)
-    // }
+  const options = { upsert: true }; // Insert if not found, update if found
+  
+  const doc = await ProductDetails.updateOne(filter, update, options)
+
+  console.log("The Product Detials inserted")
 
 }
 

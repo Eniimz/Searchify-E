@@ -1,3 +1,6 @@
+//@ts-nocheck
+
+
 import React, { useState } from 'react'
 import { motion } from "framer-motion"
 import { Button } from '../ui/button'
@@ -9,19 +12,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { populatePreviousPage } from '@/redux/productSlice'
 
-type productCardProps = {
 
-    product: Product,
-    index: number,
-    isCompareMode: boolean,
-    isSelected: boolean,
-    setSelectedProducts: (id: string, title: string) => void
-
-    
-}
-
-
-const ProductCard: React.FC<productCardProps> = ({ product, index, isCompareMode, isSelected, setSelectedProducts }) => {
+const ProductCard= ({ product, index, isCompareMode, isSelected, setSelectedProducts }) => {
   
    
   const navigate = useNavigate()
@@ -109,7 +101,11 @@ const ProductCard: React.FC<productCardProps> = ({ product, index, isCompareMode
               </div>
               <p className="text-gray-400 text-sm mb-4 line-clamp-2 h-10">{product.description ? product.description : "N/A" }</p>
               <div className="flex justify-between items-center mt-auto">
-                <span className="text-lg font-bold text-green-400 ">{product.price}</span>
+                <span className="text-lg font-bold text-green-400 ">
+                  
+                  {typeof product.price === 'string' && product?.price.startsWith("$") && product.price !== 'N/A' ? product.price : "$" + product.price}
+
+                </span>
                 {/* <Link to={`/products/${encodeURIComponent(product.title)}?id=${product.id}`} className='z-10'> */}
                   <Button 
                   onClick={() => handleRouteToDetails(product.id, product.title)}

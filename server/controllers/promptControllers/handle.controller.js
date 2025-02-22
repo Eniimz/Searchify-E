@@ -15,7 +15,7 @@ try{
     console.log("Getting query from the prompt")
     const returnedResult = await getUserProductPrompt(prompt) //geting query from prompt
 
-    const { product: query} = returnedResult
+    const { productQuery: query} = returnedResult
 
     console.log("Scraping from ", useAmazon ? 'Amazon' : 'Ebay')
 

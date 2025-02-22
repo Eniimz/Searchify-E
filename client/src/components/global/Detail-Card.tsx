@@ -1,5 +1,5 @@
 //@ts-nocheck
-import { ArrowBigLeftDash, ArrowBigLeftIcon, ArrowLeft, ArrowLeftIcon, ArrowLeftToLine, ArrowUpRightFromSquareIcon, Bookmark, BookmarkCheck, BookMarked, BookmarkIcon, Loader, LoaderCircleIcon, LucideArrowBigLeft, LucideArrowLeft, LucideBookmark, LucideBookMarked, SparkleIcon, Sparkles, Star, Truck } from "lucide-react"
+import { ArrowBigLeftDash, ArrowBigLeftIcon, ArrowLeft, ArrowLeftIcon, ArrowLeftToLine, ArrowUpRightFromSquareIcon, Bookmark, BookmarkCheck, BookMarked, BookmarkIcon, Link, Loader, LoaderCircleIcon, LucideArrowBigLeft, LucideArrowLeft, LucideBookmark, LucideBookMarked, SparkleIcon, Sparkles, Star, Truck } from "lucide-react"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -8,33 +8,9 @@ import { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
 import { tr } from "framer-motion/client"
 
-interface ProductFeature {
-  feature: string
-  details: string
-}
 
-interface Product {
-  ProductTitle: string,
-  price: {
-    listPrice: string
-    currentPrice: string
-    savings: string
-  }
-  sellerInfo: {
-    sellerName: string
-    sellerRating: number
-    numReviews: number
-  }
-  customerReviews: {
-    overallRating: number
-    numReviews: number
-  }
-  productFeatures: ProductFeature[]
-  shipping: string
-  imageUrl?: string
-}
 
-export function DetailCard({ product }: { product: Product }) {
+export function DetailCard({ product }) {
 
   const navigate = useNavigate()
   const queryParams = new URLSearchParams(location.search)
@@ -204,8 +180,11 @@ export function DetailCard({ product }: { product: Product }) {
       </div>
 
       <div className="flex justify-between items-center rounded-md p-6 ">
-        <img src={product?.imageUrl || "/placeholder.svg"} alt={product?.ProductTitle} 
-        className="object-cover rounded-md  w-fit" />
+        
+        <div className="max-w-[600px] rounded-md">
+          <img src={product?.imageUrl || "/placeholder.svg"} alt={product?.ProductTitle} 
+          className="object-cover rounded-md w-fit" />
+        </div>
 
         <Button
               onClick={() => getRatings(product)}
@@ -222,7 +201,8 @@ export function DetailCard({ product }: { product: Product }) {
       </div>
       <div className="p-6">
         <h2
-        className="text-2xl font-bold mb-2 text-gray-100 flex  gap-2 line-clamp-3">
+        onClick={() => window.open( product?.link, '_blank')}
+        className="text-2xl font-bold mb-2 text-gray-100 flex  gap-2 line-clamp-3 cursor-pointer">
           
           <ArrowUpRightFromSquareIcon size={'50'}/>
         
@@ -232,7 +212,7 @@ export function DetailCard({ product }: { product: Product }) {
         <div className="flex items-center mb-4">
           <div className="flex items-center mr-4">
             <Star className="w-5 h-5 text-yellow-400 mr-1" />
-            <span className="font-semibold text-gray-200">{product?.customerReviews?.overallRating.toFixed(1)}</span>
+            <span className="font-semibold text-gray-200">{product?.customerReviews?.overallRating?.toFixed(1)}</span>
           </div>
           <span className="text-gray-400">({product?.customerReviews?.numReviews} reviews)</span>
         </div>
@@ -261,24 +241,38 @@ export function DetailCard({ product }: { product: Product }) {
           <span className="font-semibold">Sold by:</span> {product?.sellerInfo?.sellerName}
           <div className="flex items-center mt-1">
             <Star className="w-4 h-4 text-yellow-400 mr-1" />
-            <span>{product?.sellerInfo?.sellerRating.toFixed(1)}</span>
+            <span>{product?.sellerInfo?.sellerRating?.toFixed(1)}</span>
             <span className="ml-1">({product?.sellerInfo?.numReviews} reviews)</span>
           </div>
         </div>
       </div>
       <div className="p-6">
-        <Button 
-        onClick={() => handleWishlist(product)}
-        className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 
-        text-white ">
-          {isLoading ?
-          <LoaderCircleIcon /> 
-          :
-          <>
-          <BookmarkIcon fill={`${isWishlisted ? 'white' : 'transparent'}`} /> {isWishlisted ? 'Remove from wishlist': `Wishlist`}
-          </>
-          }
-        </Button>
+        {
+          user ?
+          <Button 
+          onClick={() => handleWishlist(product)}
+          className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 
+          text-white ">
+            {isLoading ?
+            <LoaderCircleIcon /> 
+            :
+            <>
+            <BookmarkIcon fill={`${isWishlisted ? 'white' : 'transparent'}`} /> {isWishlisted ? 'Remove from wishlist': `Wishlist`}
+            </>
+            }
+          </Button> :
+
+            // <Link to={'/sign-up'}>            
+          <Button 
+          onClick={() => navigate('/sign-up')}
+          className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 
+          text-white ">
+            Sign up to add to wishlist
+          </Button>
+            // </Link>
+
+
+        }
       </div>
     </div>
   )

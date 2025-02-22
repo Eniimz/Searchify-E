@@ -41,6 +41,8 @@ mongoose.connect(process.env.MONGO_URI)
 .catch((err) => console.log("Coudlnt connect to DB: ", err))
 
 
+// console.log("Mongouri: ", process.env.MONGO_URI)
+
 
 app.use('/api', userRoutes)
 app.use('/api', promptRoutes)

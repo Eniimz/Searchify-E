@@ -17,7 +17,7 @@ const socketMiddleware = (store) => {
 
         console.log("The socket prefetch data received: ", page)
         console.log("The nextpage data: ", nextPageData)
-
+        console.log("The query: ", query)
         console.log("dispatching..")
         store.dispatch(setPageProducts({ data: nextPageData, page }))
 
@@ -25,11 +25,12 @@ const socketMiddleware = (store) => {
 
         if(nextPage <= 3){
             console.log("Emitting prefetchStart for page:", nextPage);
+            console.log("the query: ", query)
             socket.emit("prefetchStart", nextPage, query)
         }
 
 
-    })
+    })  
 
 
 
